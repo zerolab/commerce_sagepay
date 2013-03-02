@@ -449,9 +449,9 @@
     if (isset($delivery_address)) {
 
       $delivery_name = _commerce_sagepay_format_customer_name(
-        $delivery_address['name_line'],
-        $delivery_address['first_name'],
-        $delivery_address['last_name']
+        isset($delivery_address['name_line']) ? $delivery_address['name_line'] : NULL,
+        isset($delivery_address['first_name']) ? $delivery_address['first_name'] : NULL,
+        isset($delivery_address['last_name']) ? $delivery_address['last_name'] : NULL
       );
       $query['DeliverySurname'] = $delivery_name['last_name'];
       $query['DeliveryFirstnames'] = $delivery_name['first_name'];
