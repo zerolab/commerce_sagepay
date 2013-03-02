@@ -225,6 +225,7 @@
       default:
         // If the status code is anything other than those above, something has gone wrong so log an error and fail.
         watchdog('commerce_sagepay', 'Unrecognised Status response from SagePay for order %order_id (%response_code)', array('%order_id' => $order_id, '%response_code' => $tokens['Status']), WATCHDOG_ERROR);
+        drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
         return FALSE;
 
     }
