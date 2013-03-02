@@ -257,7 +257,6 @@ function _commerce_sagepay_clean_input($text, $type) {
 //  $clean_text = preg_replace($pattern, "", $text);
 
   $clean_text = check_plain($text);
-  watchdog('server', 'cleaned ' . $text . ' as ' . $clean_text);
   return $clean_text;
 
 }

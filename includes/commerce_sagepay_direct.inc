@@ -131,7 +131,6 @@
         $server_url = SAGEPAY_DIRECT_SERVER_SIMULATION;
 
     }
-    watchdog('sagepay', 'calling hook alter url');
     drupal_alter('sagepay_url', $server_url, $pane_values);
 
     // send post
