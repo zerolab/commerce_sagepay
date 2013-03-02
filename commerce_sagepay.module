@@ -1,0 +1,582 @@
+<?php
+/**
+ * @file
+ * Provides a SagePay Direct payment method for Drupal Commerce.
+ */
+
+  module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_constants');
+
+  /**
+ * Implements hook_menu().
+ */
+function commerce_sagepay_menu() {
+  $items = array();
+
+  // Define a settings page.
+  $items['admin/commerce/config/sagepay'] = array(
+    'title' => 'SagePay settings',
+    'description' => 'Configure the settings for the SagePay payment gateway integration.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_sagepay_settings_form'),
+    'access arguments' => array('administer sagepay'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/commerce_sagepay.admin.inc',
+  );
+
+  // Define a path to receive VPS callback. (Server only)
+  $items['commerce-sagepay-server/vps-callback/%/%'] = array(
+    'page callback' => 'commerce_sagepay_server_handle_callback',
+    'page arguments' => array(2, 3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/commerce_sagepay_server.inc',
+  );
+
+
+  // Define a path for a waiting page displayed whilst the iframe is loading.
+  // (Server Only)
+  $items['commerce_sagepay/sagepay_waiting_page'] = array(
+    'page callback' => 'commerce_sagepay_server_waiting_page',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/commerce_sagepay_server.inc',
+  );
+
+  // Add a menu item for capturing authorizations.
+  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/sagepay-release'] = array(
+    'title' => 'Release',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_sagepay_release_form', 3, 5),
+    'access callback' => 'commerce_sagepay_release_access',
+    'access arguments' => array(3, 5),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+    'weight' => 2,
+    'file' => 'includes/commerce_sagepay_release.inc',
+  );
+
+  // Add a menu item for refunding payments.
+  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/sagepay-refund'] = array(
+    'title' => 'Refund',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_sagepay_refund_form', 3, 5),
+    'access callback' => 'commerce_sagepay_refund_access',
+    'access arguments' => array(3, 5),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+    'weight' => 2,
+    'file' => 'includes/commerce_sagepay_refund.inc',
+  );
+
+  // Add a menu item for aborting payments.
+  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/sagepay-abort'] = array(
+    'title' => 'Abort',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_sagepay_abort_form', 3, 5),
+    'access callback' => 'commerce_sagepay_abort_access',
+    'access arguments' => array(3, 5),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+    'weight' => 2,
+    'file' => 'includes/commerce_sagepay_abort.inc',
+  );
+
+  // Add a menu item for voiding payments.
+  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/sagepay-void'] = array(
+    'title' => 'Void',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_sagepay_void_form', 3, 5),
+    'access callback' => 'commerce_sagepay_void_access',
+    'access arguments' => array(3, 5),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+    'weight' => 2,
+    'file' => 'includes/commerce_sagepay_void.inc',
+  );
+
+  // Add a menu item for authorising payments.
+  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/sagepay-authorise'] = array(
+    'title' => 'Authorise',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_sagepay_authorise_form', 3, 5),
+    'access callback' => 'commerce_sagepay_authorise_access',
+    'access arguments' => array(3, 5),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+    'weight' => 2,
+    'file' => 'includes/commerce_sagepay_authorise.inc',
+  );
+
+  // Add a menu item for cancelling payments.
+  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/sagepay-cancel'] = array(
+    'title' => 'Cancel',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_sagepay_cancel_form', 3, 5),
+    'access callback' => 'commerce_sagepay_cancel_access',
+    'access arguments' => array(3, 5),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+    'weight' => 2,
+    'file' => 'includes/commerce_sagepay_cancel.inc',
+  );
+
+  // Add a menu item for repeating payments.
+  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/sagepay-repeat'] = array(
+    'title' => 'Repeat',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_sagepay_repeat_form', 3, 5),
+    'access callback' => 'commerce_sagepay_repeat_access',
+    'access arguments' => array(3, 5),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+    'weight' => 2,
+    'file' => 'includes/commerce_sagepay_repeat.inc',
+  );
+
+  // Add a menu item for deferred repeat payments.
+  $items['admin/commerce/orders/%commerce_order/payment/%commerce_payment_transaction/sagepay-repeat-defer'] = array(
+    'title' => 'Repeat Deferred',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('commerce_sagepay_repeat_deferred_form', 3, 5),
+    'access callback' => 'commerce_sagepay_repeat_deferred_access',
+    'access arguments' => array(3, 5),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'context' => MENU_CONTEXT_INLINE,
+    'weight' => 2,
+    'file' => 'includes/commerce_sagepay_repeat_deferred.inc',
+  );
+
+  return $items;
+}
+
+  /**
+   * Implements hook_permission().
+   */
+  function commerce_sagepay_permission() {
+    $permissions = array(
+      'administer sagepay' => array(
+        'title' => t('Administer SagePay'),
+        'description' => t('Configure SagePay Settings.'),
+        'restrict access' => TRUE,
+      ),
+    );
+
+    return $permissions;
+  }
+
+/**
+ * Implements hook_commerce_payment_method_info().
+ */
+function commerce_sagepay_commerce_payment_method_info() {
+  $payment_methods = array();
+
+  $payment_methods['commerce_sagepay_form'] = array(
+    'base' => 'commerce_sagepay_form',
+    'title' => t('SagePay Form Integration'),
+    'display_title' => t('Credit or Debit card (Form)'),
+    'short_title' => t('SagePay'),
+    'description' => t('Integration with SagePay using Form method.'),
+    'active' => FALSE,
+    'terminal' => FALSE,
+    'offsite' => TRUE,
+    'offsite_autoredirect' => TRUE,
+    'callbacks' => array(),
+    'file' => 'includes/commerce_sagepay_form.inc'
+  );
+
+  $payment_methods['commerce_sagepay_server'] = array(
+    'title' => t('SagePay Server Integration'),
+    'short_title' => t('SagePay Server'),
+    'display_title' => t('Credit or Debit card (Server)'),
+    'description' => t('Integration with SagePay using Server method.'),
+    'active' => TRUE,
+    'offsite' => TRUE,
+    'terminal' => FALSE,
+    'callbacks' => array(),
+    'offsite_autoredirect' => FALSE,
+    'file' => 'includes/commerce_sagepay_server.inc',
+  );
+
+  $payment_methods['commerce_sagepay_direct'] = array(
+    'base' => 'commerce_sagepay_direct',
+    'title' => t('SagePay Direct Integration'),
+    'display_title' => t('Credit or Debit card (Direct)'),
+    'short_title' => t('SagePay'),
+    'description' => t('Integration with SagePay using Direct method.'),
+    'active' => FALSE,
+    'terminal' => TRUE,
+    'offsite' => FALSE,
+    'offsite_autoredirect' => FALSE,
+    'callbacks' => array(),
+    'file' => 'includes/commerce_sagepay_direct.inc'
+  );
+
+  return $payment_methods;
+}
+
+  /**
+   * Implements hook_init().
+   * Add the break of out iframe js when on the checkout complete page (server only).
+   **/
+
+  function commerce_sagepay_init() {
+    // Add iFrame escape javascript if the page is checkout/x/complete.
+    $url = explode('/', $_GET['q']);
+    if (sizeof($url) > 2 ) {
+      if ($url[0] == 'checkout' && $url[2] == 'complete') {
+        drupal_add_js(drupal_get_path('module', 'commerce_sagepay') . '/js/commerce_sagepay_server_iframe.js');
+      }
+    }
+  }
+
+
+  /**
+   * Determines access to the prior authorization release form for SagePay
+   *
+   * @param $order
+   *   The order the transaction is on.
+   * @param $transaction
+   *   The payment transaction object to be released.
+   *
+   * @return bool TRUE or FALSE indicating release access.
+   */
+  function commerce_sagepay_release_access($order, $transaction) {
+    global $user;
+
+    // Return FALSE if the transaction isn't for SagePay Server or Direct or isn't
+    // awaiting capture.
+    if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
+      return FALSE;
+    }
+
+    if ($transaction->remote_status != SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED) {
+      return FALSE;
+    }
+
+    // Return FALSE if it is more than 90 days past the original authorization.
+    if (time() - $transaction->created > 86400 * 90) {
+      return FALSE;
+    }
+
+    // Allow access if the user can update payments on this order.
+    return commerce_payment_transaction_access('update', $order, $user);
+  }
+
+  /**
+   * Determines access to the refund form for SagePay
+   *
+   * @param $order
+   *   The order the transaction is on.
+   * @param $transaction
+   *   The payment transaction object to be captured.
+   *
+   * @return bool TRUE or FALSE indicating refund access.
+   */
+  function commerce_sagepay_refund_access($order, $transaction) {
+    global $user;
+
+    // Return FALSE if the transaction isn't for SagePay Server or Direct
+    if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
+      return FALSE;
+    }
+    // Return FALSE is the remote status is FAIL or INVALID
+    if (in_array($transaction->remote_status,
+       array(
+         SAGEPAY_REMOTE_STATUS_FAIL,
+         SAGEPAY_REMOTE_STATUS_INVALID,
+         SAGEPAY_REMOTE_STATUS_STARTED,
+         SAGEPAY_REMOTE_STATUS_UNKNOWN,
+         SAGEPAY_REMOTE_STATUS_REFUNDED,
+         SAGEPAY_REMOTE_STATUS_REGISTERED,
+         SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED)
+      )
+    ) return FALSE;
+
+    if ($transaction->status == COMMERCE_PAYMENT_STATUS_FAILURE) return FALSE;
+
+    // Allow access if the user can update payments on this order.
+    return commerce_payment_transaction_access('update', $order, $user);
+  }
+
+  /**
+   * Determines access to the abort form for SagePay
+   *
+   * @param $order
+   *   The order the transaction is on.
+   * @param $transaction
+   *   The payment transaction object to be aborted.
+   *
+   * @return bool TRUE or FALSE indicating abort access.
+   */
+  function commerce_sagepay_abort_access($order, $transaction) {
+
+    global $user;
+
+    // Return FALSE if the transaction isn't for SagePay Server or Direct
+    if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
+//      strtoupper($transaction->remote_status) != 'AUTH_ONLY') {
+      return FALSE;
+    }
+
+    if ($transaction->remote_status != SAGEPAY_REMOTE_STATUS_DEFERRERED && $transaction->remote_status != SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED) {
+      return FALSE;
+    }
+
+    // Allow access if the user can update payments on this order.
+    return commerce_payment_transaction_access('update', $order, $user);
+  }
+
+  /**
+   * Determines access to the void form for SagePay
+   *
+   * @param $order
+   *   The order the transaction is on.
+   * @param $transaction
+   *   The payment transaction object to be aborted.
+   *
+   * @return bool TRUE or FALSE indicating void access.
+   */
+  function commerce_sagepay_void_access($order, $transaction) {
+    global $user;
+
+    // Return FALSE if the transaction isn't for SagePay Server or Direct
+    if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
+      return FALSE;
+    }
+
+    if ($transaction->remote_status != 'PAYMENT' && $transaction->remote_status != 'RELEASED' && $transaction->remote_status != 'DEFERRED') {
+      return FALSE;
+    }
+
+    // Check if transaction status is not already cancelled
+    if ($transaction->status == COMMERCE_PAYMENT_STATUS_FAILURE) return FALSE;
+
+    // Allow access if the user can update payments on this order.
+    return commerce_payment_transaction_access('update', $order, $user);
+  }
+
+
+  /**
+   * Determines access to the cancel form for SagePay
+   *
+   * @param $order
+   *   The order the transaction is on.
+   * @param $transaction
+   *   The payment transaction object to be aborted.
+   *
+   * @return bool TRUE or FALSE indicating void access.
+   */
+  function commerce_sagepay_cancel_access($order, $transaction) {
+    global $user;
+
+    // Return FALSE if the transaction isn't for SagePay Server or Direct
+    if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
+      return FALSE;
+    }
+
+    if (!in_array($transaction->remote_status, array(
+      SAGEPAY_REMOTE_STATUS_AUTHENTICATE,
+      SAGEPAY_REMOTE_STATUS_REGISTERED,
+      )
+    )) {
+      return FALSE;
+    }
+
+    if ($transaction->remote_status != 'AUTHENTICATE' && $transaction->remote_status != 'REGISTERED') {
+      return FALSE;
+    }
+
+    // Allow access if the user can update payments on this order.
+    return commerce_payment_transaction_access('update', $order, $user);
+  }
+
+  /**
+   * Determines access to the authorise form for SagePay
+   *
+   * @param $order
+   *   The order the transaction is on.
+   * @param $transaction
+   *   The payment transaction object to be authorised.
+   *
+   * @return bool TRUE or FALSE indicating void access.
+   */
+  function commerce_sagepay_authorise_access($order, $transaction) {
+    global $user;
+
+    // Return FALSE if the transaction isn't for SagePay Server or Direct
+    if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
+      return FALSE;
+    }
+
+    if ($transaction->remote_status != 'AUTHENTICATE' && $transaction->remote_status != 'REGISTERED') {
+      return FALSE;
+    }
+
+    // Return FALSE if it is more than 90 days past the original authorization.
+    if (time() - $transaction->created > 86400 * 90) {
+      return FALSE;
+    }
+
+    // Allow access if the user can update payments on this order.
+    return commerce_payment_transaction_access('update', $order, $user);
+  }
+
+
+  /**
+   * Determines access to the repeat form for SagePay
+   *
+   * @param $order
+   *   The order the transaction is on.
+   * @param $transaction
+   *   The payment transaction object to be repeated.
+   *
+   * @return bool TRUE or FALSE indicating void access.
+   */
+  function commerce_sagepay_repeat_access($order, $transaction) {
+    global $user;
+
+    // Return FALSE if the transaction isn't for SagePay Server or Direct
+    if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
+      return FALSE;
+    }
+
+    if (in_array($transaction->remote_status,
+      array(
+        SAGEPAY_REMOTE_STATUS_FAIL,
+        SAGEPAY_REMOTE_STATUS_INVALID,
+        SAGEPAY_REMOTE_STATUS_STARTED,
+        SAGEPAY_REMOTE_STATUS_UNKNOWN,
+        SAGEPAY_REMOTE_STATUS_REFUNDED,
+        SAGEPAY_REMOTE_STATUS_REGISTERED)
+    )
+    ) return FALSE;
+
+    // Check if this is a successful transaction.
+    if ($transaction-> status != COMMERCE_PAYMENT_STATUS_SUCCESS) return FALSE;
+
+    // Allow access if the user can update payments on this order.
+    return commerce_payment_transaction_access('update', $order, $user);
+  }
+
+  /**
+   * Determines access to the repeat form for SagePay
+   *
+   * @param $order
+   *   The order the transaction is on.
+   * @param $transaction
+   *   The payment transaction object to be repeated.
+   *
+   * @return bool TRUE or FALSE indicating void access.
+   */
+  function commerce_sagepay_repeat_deferred_access($order, $transaction) {
+    global $user;
+
+    // Return FALSE if the transaction isn't for SagePay Server or Direct
+    if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
+      return FALSE;
+    }
+
+    if (in_array($transaction->remote_status,
+      array(
+        SAGEPAY_REMOTE_STATUS_FAIL,
+        SAGEPAY_REMOTE_STATUS_INVALID,
+        SAGEPAY_REMOTE_STATUS_STARTED,
+        SAGEPAY_REMOTE_STATUS_UNKNOWN,
+        SAGEPAY_REMOTE_STATUS_REFUNDED,
+        SAGEPAY_REMOTE_STATUS_REGISTERED)
+    )
+    ) return FALSE;
+
+    // Check if this is a successful transaction.
+    if ($transaction-> status != COMMERCE_PAYMENT_STATUS_SUCCESS) return FALSE;
+
+    // Allow access if the user can update payments on this order.
+    return commerce_payment_transaction_access('update', $order, $user);
+  }
+
+
+  /**
+   * Implements hook_page_build().
+   * To insert js
+   * @param $page
+   */
+  function commerce_sagepay_page_build($page) {
+    $url = explode('/', current_path());
+    if (sizeof($url) > 2 ) {
+      if ($url[0] == 'checkout' && in_array($url[2], array('review', 'complete'))) {
+        drupal_add_js(drupal_get_path('module', 'commerce_sagepay') . '/js/commerce_sagepay_server_iframe.js');
+      }
+    }
+
+  }
+
+  /**
+   * Implements hook_form_alter().
+   *
+   * Adjust the credit card area of the payment form to include the card
+   * logos of active card types.
+   * @param $form
+   * @param $form_state
+   * @param $form_id
+   */
+function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
+  // If the current form ID is for a checkout form...
+  if (strpos($form_id, 'commerce_checkout_form_') === 0) {
+    drupal_add_css(drupal_get_path('module', 'commerce_sagepay') . '/css/sagepay_direct.css');
+
+    // And it specifies a valid checkout page...
+    if (commerce_checkout_page_load(substr($form_id, 23))) {
+      // And the current page's form includes the payment checkout pane...
+      if (!empty($form['commerce_payment'])) {
+        $enabled_cards = variable_get(SAGEPAY_SETTING_ENABLED_CARDS);
+        $card_images = theme_commerce_sagepay_card_logos(array('enabled_cards' => $enabled_cards));
+        $payment_details = $form['commerce_payment']['payment_details'];
+        if (array_key_exists('credit_card', $payment_details)) {
+
+          // Add credit card logos about the card dropdown.
+          array_unshift($form['commerce_payment']['payment_details']['credit_card'], array('logos'=> array('#markup' => $card_images)));
+
+          // Replace the card selection dropdown with one based on our available cards.
+
+          $form['commerce_payment']['payment_details']['credit_card']['type']['#options'] = _commerce_sagepay_populate_card_names($enabled_cards);
+        }
+
+
+      }
+    }
+  }
+}
+
+  /**
+   * Implements hook_theme().
+   * Add a theme function for how card logos will be displayed.
+   * @param $existing
+   * @param $type
+   * @param $theme
+   * @param $path
+   * @return array
+   */
+function commerce_sagepay_theme($existing, $type, $theme, $path){
+  return array(
+    'commerce_sagepay_card_logos' => array(
+      'variables' => array(
+        'enabled_cards' => array()),
+      ),
+    );
+}
+
+  /**
+   * Theme function determining how card logos are displayed.
+   * This is invoked by a form alter and adds the card logos as a Suffix
+   * to the card type dropdown.
+   * @param $enabled_cards
+   * @return string
+   */
+function theme_commerce_sagepay_card_logos($enabled_cards){
+  $output = '<div class="card_type_images">';
+  foreach($enabled_cards['enabled_cards'] as $c){
+    if ($c != '0') $output .= '<img src="/' . drupal_get_path('module', 'commerce_sagepay') . '/img/' . $c . '.png" /> &nbsp;';
+  }
+  $output .= '</div>';
+  return $output;
+}

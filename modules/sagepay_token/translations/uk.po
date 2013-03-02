@@ -1,0 +1,57 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  sagepay_token.module: n/a
+#  sagepay_token.info: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2013-02-19 14:25+0000\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: sagepay_token.module:14
+msgid "Token"
+msgstr ""
+
+#: sagepay_token.module:21
+msgid "Request a token by default when a transaction is created."
+msgstr ""
+
+#: sagepay_token.module:22
+msgid "This behaviour can be changed on a per-order basis using <code>hook_sagepay_order_data_alter</code>."
+msgstr ""
+
+#: sagepay_token.module:139
+msgid "Error removing saved card. %detail"
+msgstr ""
+
+#: sagepay_token.module:116
+msgid "sagepay"
+msgstr ""
+
+#: sagepay_token.module:116
+msgid "received request to remove token"
+msgstr ""
+
+#: sagepay_token.info:0
+msgid "SagePay Token Support"
+msgstr ""
+
+#: sagepay_token.info:0
+msgid "Add on for Commerce SagePay allow customers to use stored cards."
+msgstr ""
+
+#: sagepay_token.info:0
+msgid "Commerce - Payment"
+msgstr ""
+
