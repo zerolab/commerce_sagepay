@@ -94,7 +94,7 @@
       if (isset($line_item_wrapper->commerce_customer_shipping)) {
         $shipping_profile = $line_item_wrapper->commerce_customer_shipping;
       }
-      else {
+      else if (isset($order_wrapper->commerce_customer_shipping)) {
         $shipping_profile = $order_wrapper->commerce_customer_shipping;
       }
 
