@@ -33,15 +33,6 @@
       '#default_value' => variable_get(SAGEPAY_SETTING_VENDOR_NAME, ''),
     );
 
-    $form['account_details'][SAGEPAY_SETTING_ENCRYPTION_KEY] = array(
-      '#type' => 'textfield',
-      '#title' => t('Encryption Key'),
-      '#description' => t('If you have requested form based integration, you will have received an encryption key from SagePay in a separate email.'),
-      '#required' => TRUE,
-      '#weight' => 10,
-      '#default_value' => variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY, ''),
-    );
-
     /**
      * Settings related to the emails sent from SagePay during the course
      * of a transaction.
@@ -206,16 +197,6 @@
       '#collapsed' => TRUE,
     );
 
-
-    $form['testing'][SAGEPAY_SETTING_TEST_ENCRYPTION_KEY] = array(
-      '#type' => 'textfield',
-      '#title' => t('Test Mode Encryption Key'),
-      '#description' => t('If you have requested form based integration, you will have received an encryption key from SagePay in a separate email. The encryption key for the test server is different to the one used in your production environment.'),
-      '#required' => TRUE,
-      '#weight' => 10,
-      '#default_value' => variable_get(SAGEPAY_SETTING_TEST_ENCRYPTION_KEY, ''),
-    );
-
     $form['testing'][SAGEPAY_SETTING_USE_TEST_DATA] = array(
       '#type' => 'checkbox',
       '#title' => t('Override entered card data with test data.'),
@@ -259,6 +240,32 @@
       '#title' => t('Use low profile payment pages'),
       '#description' => t('Use the less graphical, simpler set of payment pages which look better inside an iFrame.'),
       '#default_value' => variable_get(SAGEPAY_SETTING_LOW_PROFILE, 1),
+    );
+
+    /**
+     * Items only relevant to SagePay Form integration.
+     */
+    $form['form_specific'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'SagePay Form Integration Specific Settings',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+
+    $form['form_specific'][SAGEPAY_SETTING_ENCRYPTION_KEY] = array(
+      '#type' => 'textfield',
+      '#title' => t('Encryption Key'),
+      '#description' => t('If you have requested form based integration, you will have received an encryption key from SagePay in a separate email.'),
+      '#weight' => 10,
+      '#default_value' => variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY, ''),
+    );
+
+    $form['form_specific'][SAGEPAY_SETTING_TEST_ENCRYPTION_KEY] = array(
+      '#type' => 'textfield',
+      '#title' => t('Test Mode Encryption Key'),
+      '#description' => t('If you have requested form based integration, you will have received an encryption key from SagePay in a separate email. The encryption key for the test server is different to the one used in your production environment.'),
+      '#weight' => 15,
+      '#default_value' => variable_get(SAGEPAY_SETTING_TEST_ENCRYPTION_KEY, ''),
     );
 
     return system_settings_form($form);
