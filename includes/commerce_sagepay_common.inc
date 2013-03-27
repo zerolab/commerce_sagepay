@@ -199,12 +199,39 @@
         drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
         return FALSE;
       case 'OK' :
+        $arr_charge = array();
+        $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+        $arr_charge['amount'] = $tokens['Amount'];
+        $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
+        $transaction = NULL;
+
+        /**
+         * If 3D secure is in use, we may have to load a partially completed transaction
+         * at this point in order to complete it.
+         */
+        if (module_exists('sagepay_3d_secure')){
+          $transaction = sagepay_3d_secure_load_transaction($tokens, $order);
+        }
+
+        commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_SUCCESS, SAGEPAY_REMOTE_STATUS_PAYMENT, $transaction);
         break;
       case 'AUTHENTICATED' :
+        $arr_charge = array();
+        $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+        $arr_charge['amount'] = $tokens['Amount'];
+        $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
         watchdog('commerce_sagepay', 'AUTHENTICATED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
+        commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_AUTHENTICATE);
+
         break;
       case 'REGISTERED' :
+        $arr_charge = array();
+        $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+        $arr_charge['amount'] = $tokens['Amount'];
+        $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
         watchdog('commerce_sagepay', 'REGISTERED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
+        commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_REGISTERED);
+
         break;
       case '3DAUTH' :
         // Server has replied with a 3D Secure authentication request.
@@ -220,6 +247,13 @@
         $tds_data['MD'] = $tokens['MD'];
         $tds_data['TermUrl'] = url('commerce-sagepay/3d_secure_callback/' . $order->order_number , array('absolute' => TRUE));
         $order->data['extra_authorisation'] = $tds_data;
+        $arr_charge = array();
+        $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+
+        $arr_charge['amount'] = $tokens['Amount'];
+        $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
+
+        commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_3D_SECURE);
 
         break;
       default:
@@ -230,42 +264,7 @@
 
     }
 
-    // Validation successful.
-    // Create a transaction and associate it with the order.
-    // If teh CAVV token is present, we must be coming back from
-    // 3D Secure authentication so we need to load the original transaction to complete it.
-    if (array_key_exists('CAVV', $tokens)) {
-      // Load the transaction from the original order so we can get the details we need.
-      $conditions = array('order_id' => $order->order_id, 'remote_status' => SAGEPAY_REMOTE_STATUS_3D_SECURE);
-      $transactions = commerce_payment_transaction_load_multiple(array(), $conditions);
-      $transaction = array_pop($transactions);
-      $arr_charge = array();
-      $arr_charge['amount'] = $transaction->amount;
-      $arr_charge['currency_code'] = $transaction->currency_code;
 
-    }
-    else {
-      $arr_charge = array();
-      $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
-      $arr_charge['amount'] = $tokens['Amount'];
-      $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
-      $transaction = NULL;
-    }
-    switch ($tokens['Status']) {
-      case 'OK':
-        commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_SUCCESS, SAGEPAY_REMOTE_STATUS_PAYMENT, $transaction);
-
-        break;
-      case 'REGISTERED':
-        commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_REGISTERED);
-        break;
-      case 'AUTHENTICATED':
-        commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_AUTHENTICATE);
-        break;
-      case '3DAUTH':
-        commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_3D_SECURE);
-      break;
-    }
     return TRUE;
 
   }
@@ -406,9 +405,12 @@
         $query['CardNumber'] = $pane_values['credit_card']['number'];
         $query['ExpiryDate'] = $pane_values['credit_card']['exp_month'] . substr($pane_values['credit_card']['exp_year'], 2, 2);
         $query['StartDate'] = $pane_values['credit_card']['start_month'] . substr($pane_values['credit_card']['start_year'], 2, 2);
-        $query['IssueNumber'] = $pane_values['credit_card']['issue'];
+        if ($query['IssueNumber'] != '') {
+          $query['IssueNumber'] = str_pad($pane_values['credit_card']['issue'], 2, '0', STR_PAD_LEFT);
+        }
         $query['CV2'] = $pane_values['credit_card']['code'];
         $query['CardType'] = $pane_values['credit_card']['type'];
+
 
         // Add 3D Secure flag only if the 3d Secure module is enabled for DIRECT
         if (module_exists('sagepay_3d_secure')) {
