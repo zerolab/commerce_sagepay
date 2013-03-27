@@ -472,7 +472,7 @@
      * Call hook to allow other modules to modify order data before it is encrypted or used.
      */
     $query['integration_method'] = $integration_method;
-    drupal_alter('sagepay_order_data', $query);
+    drupal_alter('sagepay_order_data', $query, $order);
     unset($query['integration_method']);
 
     // For Server mode, we can return the Array now before encryption.

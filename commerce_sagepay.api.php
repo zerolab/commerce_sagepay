@@ -23,8 +23,10 @@
 *
 * @param $query
 *   An array of transaction parameters as defined in the SagePay V3.0 protocol.
+* @param $order
+*   The order from which the transaction was generated.
 */
-function hook_sagepay_order_data_alter(&$query) {
+function hook_sagepay_order_data_alter(&$query, $order) {
 // No example.
 }
 
