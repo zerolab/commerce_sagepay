@@ -5,6 +5,7 @@
  */
 
   module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_constants');
+  module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_utils');
 
   /**
  * Implements hook_menu().
