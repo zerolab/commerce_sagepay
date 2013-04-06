@@ -132,7 +132,7 @@
     $transaction->message_variables =
       array(
         '@status' => $tokens['Status'],
-        '@statusdetail' => $tokens['StatusDetail'],
+        '@statusdetail' => isset($tokens['StatusDetail']) ? $tokens['StatusDetail'] : 'N/A',
         '@vpstxid' => isset($tokens['VPSTxId']) ? $tokens['VPSTxId'] : 'N/A',
         '@authcode' => isset($tokens['TxAuthNo']) ? $tokens['TxAuthNo'] : 'N/A',
         '@address' => isset($tokens['AddressResult']) ? $tokens['AddressResult'] : 'N/A',
@@ -405,7 +405,8 @@
         $query['CardNumber'] = $pane_values['credit_card']['number'];
         $query['ExpiryDate'] = $pane_values['credit_card']['exp_month'] . substr($pane_values['credit_card']['exp_year'], 2, 2);
         $query['StartDate'] = $pane_values['credit_card']['start_month'] . substr($pane_values['credit_card']['start_year'], 2, 2);
-        if ($query['IssueNumber'] != '') {
+        $issue_number = isset($query['IssueNumber']) ? $query['IssueNumber'] : '';
+        if ($issue_number != '') {
           $query['IssueNumber'] = str_pad($pane_values['credit_card']['issue'], 2, '0', STR_PAD_LEFT);
         }
         $query['CV2'] = $pane_values['credit_card']['code'];
