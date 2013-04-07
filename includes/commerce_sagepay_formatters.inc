@@ -268,6 +268,10 @@
 
     // Step through components to look for tax item
     $line_data = $line_item_wrapper->commerce_unit_price->value();
+
+    // Set a default value for the tax component in case the site is not using tax.
+    $item_tax = array('amount' => 0, 'currency_code' => $item_value['currency_code']);
+    
     foreach ($line_data['data']['components'] as $c) {
       if (strpos($c['name'], 'tax') === 0) {
         $item_tax = commerce_price_component_total($item_value, $c['name']);
