@@ -39,12 +39,12 @@ function commerce_sagepay_cancel_form_submit($form, &$form_state) {
 
   // Set up the query array to send to SagePay.
   $query = array(
-    'VPSProtocol' => SAGEPAY_PROTOCOL,
-    'TxType' => 'CANCEL',
-    'Vendor' => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'VPSProtocol'  => SAGEPAY_PROTOCOL,
+    'TxType'       => 'CANCEL',
+    'Vendor'       => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
     'VendorTxCode' => $transaction->payload['VendorTxCode'],
-    'VPSTxId' => $transaction->remote_id,
-    'SecurityKey' => $transaction->payload['SecurityKey'],
+    'VPSTxId'      => $transaction->remote_id,
+    'SecurityKey'  => $transaction->payload['SecurityKey'],
   );
 
   // Determine the correct url to send the request to based on the transaction mode.

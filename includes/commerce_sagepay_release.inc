@@ -31,12 +31,12 @@ function commerce_sagepay_release_form($form, &$form_state, $order, $transaction
   ));
 
   $form['amount'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Release amount'),
-    '#description' => check_plain($description),
+    '#type'          => 'textfield',
+    '#title'         => t('Release amount'),
+    '#description'   => check_plain($description),
     '#default_value' => $default_amount,
-    '#field_suffix' => check_plain($transaction->currency_code),
-    '#size' => 16,
+    '#field_suffix'  => check_plain($transaction->currency_code),
+    '#size'          => 16,
   );
 
   $form = confirm_form($form,
@@ -88,15 +88,15 @@ function commerce_sagepay_release_form_submit($form, &$form_state) {
 
   // Create the query to send to SagePay.
   $query = array(
-    'VPSProtocol' => SAGEPAY_PROTOCOL,
-    'TxType' => 'RELEASE',
-    'Vendor' => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
-    'VendorTxCode' => $transaction->payload['VendorTxCode'],
+    'VPSProtocol'   => SAGEPAY_PROTOCOL,
+    'TxType'        => 'RELEASE',
+    'Vendor'        => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'VendorTxCode'  => $transaction->payload['VendorTxCode'],
     'ReleaseAmount' => $amount,
-    'Description' => t('Release deferred transaction.'),
-    'VPSTxId' => $transaction->remote_id,
-    'SecurityKey' => $transaction->payload['SecurityKey'],
-    'TxAuthNo' => $transaction->payload['TxAuthNo'],
+    'Description'   => t('Release deferred transaction.'),
+    'VPSTxId'       => $transaction->remote_id,
+    'SecurityKey'   => $transaction->payload['SecurityKey'],
+    'TxAuthNo'      => $transaction->payload['TxAuthNo'],
   );
 
   // Determine the correct url to send the transaction to based on the transaction mode.
@@ -140,7 +140,7 @@ function commerce_sagepay_release_form_submit($form, &$form_state) {
   $transaction->message = $transaction_message;
   $transaction->message_variables =
     array(
-      '@status' => $response['Status'],
+      '@status'       => $response['Status'],
       '@statusdetail' => $response['StatusDetail'],
     );
 

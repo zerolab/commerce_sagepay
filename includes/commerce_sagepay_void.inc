@@ -40,13 +40,13 @@ function commerce_sagepay_void_form_submit($form, &$form_state) {
   $transaction = $form_state['transaction'];
 
   $query = array(
-    'VPSProtocol' => SAGEPAY_PROTOCOL,
-    'TxType' => 'VOID',
-    'Vendor' => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'VPSProtocol'  => SAGEPAY_PROTOCOL,
+    'TxType'       => 'VOID',
+    'Vendor'       => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
     'VendorTxCode' => $transaction->payload['VendorTxCode'],
-    'VPSTxId' => $transaction->remote_id,
-    'SecurityKey' => $transaction->payload['SecurityKey'],
-    'TxAuthNo' => $transaction->payload['TxAuthNo'],
+    'VPSTxId'      => $transaction->remote_id,
+    'SecurityKey'  => $transaction->payload['SecurityKey'],
+    'TxAuthNo'     => $transaction->payload['TxAuthNo'],
   );
 
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {

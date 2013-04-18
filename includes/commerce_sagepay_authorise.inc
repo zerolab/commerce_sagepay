@@ -34,17 +34,17 @@ function commerce_sagepay_authorise_form($form, &$form_state, $order, $transacti
   ));
 
   $form['amount'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Authorise amount'),
-    '#description' => check_plain($description),
+    '#type'          => 'textfield',
+    '#title'         => t('Authorise amount'),
+    '#description'   => check_plain($description),
     '#default_value' => $default_amount,
-    '#field_suffix' => check_plain($transaction->currency_code),
-    '#size' => 16,
+    '#field_suffix'  => check_plain($transaction->currency_code),
+    '#size'          => 16,
   );
 
   $form['cv2_check'] = array(
-    '#type' => 'select',
-    '#title' => 'Override AVS / CV2 check for this transaction',
+    '#type'    => 'select',
+    '#title'   => 'Override AVS / CV2 check for this transaction',
     '#options' => array(
       '0' => 'If AVS/CV2 enabled then check them. If rules apply, use rules. (default)',
       '1' => 'Force AVS/CV2 checks even if not enabled for the account. If rules apply, use rules.',
@@ -101,16 +101,16 @@ function commerce_sagepay_authorise_form_submit($form, &$form_state) {
 
   // Assemble the query array to send to SagePay.
   $query = array(
-    'VPSProtocol' => SAGEPAY_PROTOCOL,
-    'TxType' => 'AUTHORISE',
-    'Vendor' => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
-    'VendorTxCode' => $authorise_transaction_id,
-    'Amount' => $amount,
-    'Description' => t('Authorise registered transaction.'),
-    'RelatedVPSTxId' => $transaction->remote_id,
+    'VPSProtocol'         => SAGEPAY_PROTOCOL,
+    'TxType'              => 'AUTHORISE',
+    'Vendor'              => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'VendorTxCode'        => $authorise_transaction_id,
+    'Amount'              => $amount,
+    'Description'         => t('Authorise registered transaction.'),
+    'RelatedVPSTxId'      => $transaction->remote_id,
     'RelatedVendorTxCode' => $transaction->payload['VendorTxCode'],
-    'RelatedSecurityKey' => $transaction->payload['SecurityKey'],
-    'ApplyAVSCV2' => $form_state['values']['cv2_check'],
+    'RelatedSecurityKey'  => $transaction->payload['SecurityKey'],
+    'ApplyAVSCV2'         => $form_state['values']['cv2_check'],
   );
 
   // Determine the correct url to send the request depending on the Transaction Mode.
@@ -163,7 +163,7 @@ function commerce_sagepay_authorise_form_submit($form, &$form_state) {
   $authorise_transaction->message = $transaction_message;
   $authorise_transaction->message_variables =
     array(
-      '@status' => $response['Status'],
+      '@status'       => $response['Status'],
       '@statusdetail' => $response['StatusDetail'],
     );
 

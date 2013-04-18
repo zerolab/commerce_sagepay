@@ -17,6 +17,7 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
     drupal_set_message(t("SagePay Server Integration is not configured for use.
       <a href=\"/admin/commerce/config/sagepay\">Set a vendor name on the settings page.</a>"),
       'error');
+
     return array();
   }
 
@@ -114,12 +115,13 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
         $form['#attributes']['target'] = 'iframe_sagepay';
 
         $form['submit'] = array(
-          '#type' => 'submit',
+          '#type'  => 'submit',
           '#value' => t('Proceed to SagePay'),
         );
         $form['iframe_sagepay'] = array(
           '#markup' => '<iframe style="width: 600px; height:500px" scrolling="no" frameborder="0" name="iframe_sagepay" id="iframe_sagepay" src="' . url('commerce_sagepay/sagepay_waiting_page') . '" />',
         );
+
         return $form;
       } else {
         header("Location: " . $response["NextURL"]);
@@ -198,6 +200,7 @@ function commerce_sagepay_server_redirect_form_validate($order, $payment_method)
     }
     commerce_payment_transaction_save($transaction);
   }
+
   return $return;
 }
 

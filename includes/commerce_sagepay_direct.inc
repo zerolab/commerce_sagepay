@@ -21,11 +21,11 @@ function commerce_sagepay_direct_submit_form($payment_method, $pane_values, $che
   }
 
   $credit_card_settings = array(
-    'type' => $card_types,
-    'number' => '',
+    'type'       => $card_types,
+    'number'     => '',
     'start_date' => '',
-    'issue' => '',
-    'code' => ''
+    'issue'      => '',
+    'code'       => ''
   );
 
   return commerce_payment_credit_card_form($credit_card_settings);

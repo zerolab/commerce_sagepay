@@ -47,9 +47,9 @@ function commerce_sagepay_order_form($form, &$form_state, $order, $settings) {
   // Build the data array that will be translated into hidden form values.
   $data = array(
     'VPSProtocol' => SAGEPAY_PROTOCOL,
-    'TxType' => $tx_type,
-    'Vendor' => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
-    'Crypt' => $encrypted_order,
+    'TxType'      => $tx_type,
+    'Vendor'      => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'Crypt'       => $encrypted_order,
   );
 
   // determine the correct url based on the transaction mode.
@@ -76,7 +76,7 @@ function commerce_sagepay_order_form($form, &$form_state, $order, $settings) {
   }
 
   $form['submit'] = array(
-    '#type' => 'submit',
+    '#type'  => 'submit',
     '#value' => t('Proceed to SagePay'),
   );
 
@@ -129,23 +129,23 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
   $transaction->message = $transaction_message;
   $transaction->message_variables =
     array(
-      '@status' => $tokens['Status'],
-      '@statusdetail' => isset($tokens['StatusDetail']) ? $tokens['StatusDetail'] : 'N/A',
-      '@vpstxid' => isset($tokens['VPSTxId']) ? $tokens['VPSTxId'] : 'N/A',
-      '@authcode' => isset($tokens['TxAuthNo']) ? $tokens['TxAuthNo'] : 'N/A',
-      '@address' => isset($tokens['AddressResult']) ? $tokens['AddressResult'] : 'N/A',
-      '@postcode' => isset($tokens['PostCodeResult']) ? $tokens['PostCodeResult'] : 'N/A',
-      '@avs' => isset($tokens['AVSCV2']) ? $tokens['AVSCV2'] : 'N/A',
-      '@tds' => isset($tokens['3DSecureStatus']) ? $tokens['3DSecureStatus'] : 'N/A',
-      '@giftaid' => isset($tokens['GiftAid']) ? $tokens['GiftAid'] : 'No',
+      '@status'        => $tokens['Status'],
+      '@statusdetail'  => isset($tokens['StatusDetail']) ? $tokens['StatusDetail'] : 'N/A',
+      '@vpstxid'       => isset($tokens['VPSTxId']) ? $tokens['VPSTxId'] : 'N/A',
+      '@authcode'      => isset($tokens['TxAuthNo']) ? $tokens['TxAuthNo'] : 'N/A',
+      '@address'       => isset($tokens['AddressResult']) ? $tokens['AddressResult'] : 'N/A',
+      '@postcode'      => isset($tokens['PostCodeResult']) ? $tokens['PostCodeResult'] : 'N/A',
+      '@avs'           => isset($tokens['AVSCV2']) ? $tokens['AVSCV2'] : 'N/A',
+      '@tds'           => isset($tokens['3DSecureStatus']) ? $tokens['3DSecureStatus'] : 'N/A',
+      '@giftaid'       => isset($tokens['GiftAid']) ? $tokens['GiftAid'] : 'No',
       '@addressstatus' => isset($tokens['AddressStatus']) ? $tokens['AddressStatus'] : 'N/A',
-      '@payerstatus' => isset($tokens['PayerStatus']) ? $tokens['PayerStatus'] : 'N/A',
-      '@cardtype' => isset($tokens['CardType']) ? $tokens['CardType'] : 'N/A',
-      '@last4digits' => isset($tokens['Last4Digits']) ? $tokens['Last4Digits'] : 'N/A',
+      '@payerstatus'   => isset($tokens['PayerStatus']) ? $tokens['PayerStatus'] : 'N/A',
+      '@cardtype'      => isset($tokens['CardType']) ? $tokens['CardType'] : 'N/A',
+      '@last4digits'   => isset($tokens['Last4Digits']) ? $tokens['Last4Digits'] : 'N/A',
       '@fraudresponse' => isset($tokens['FraudResponse']) ? $tokens['FraudResponse'] : 'N/A',
-      '@surcharge' => isset($tokens['Surcharge']) ? $tokens['Surcharge'] : 'N/A',
-      '@bankauthcode' => isset($tokens['BankAuthCode']) ? $tokens['BankAuthCode'] : 'N/A',
-      '@declinecode' => isset($tokens['DeclineCode']) ? $tokens['DeclineCode'] : 'N/A',
+      '@surcharge'     => isset($tokens['Surcharge']) ? $tokens['Surcharge'] : 'N/A',
+      '@bankauthcode'  => isset($tokens['BankAuthCode']) ? $tokens['BankAuthCode'] : 'N/A',
+      '@declinecode'   => isset($tokens['DeclineCode']) ? $tokens['DeclineCode'] : 'N/A',
     );
   commerce_payment_transaction_save($transaction);
 
@@ -166,37 +166,43 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
   $order_id = $order->order_id;
   // Check for a valid status callback.
   switch ($tokens['Status']) {
-    case 'ABORT' :
+    case 'ABORT':
       watchdog('commerce_sagepay', 'ABORT error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Your SagePay transaction was aborted.'), 'error');
       return FALSE;
-    case 'NOTAUTHED' :
+
+    case 'NOTAUTHED':
       watchdog('commerce_sagepay', 'NOTAUTHED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Your transaction was not authorised.'), 'error');
       return FALSE;
-    case 'REJECTED' :
+
+    case 'REJECTED':
       watchdog('commerce_sagepay', 'REJECTED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Your transaction was rejected.'), 'error');
       return FALSE;
-    case 'MALFORMED' :
+
+    case 'MALFORMED':
       watchdog('commerce_sagepay', 'MALFORMED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Sorry the transaction has failed.'), 'error');
       return FALSE;
-    case 'INVALID' :
+
+    case 'INVALID':
       watchdog('commerce_sagepay', 'INVALID error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ERROR);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
       return FALSE;
-    case 'ERROR' :
+
+    case 'ERROR':
       watchdog('commerce_sagepay', 'System ERROR from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ERROR);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
       return FALSE;
-    case 'OK' :
+
+    case 'OK':
       $arr_charge = array();
       $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
       $arr_charge['amount'] = $tokens['Amount'];
@@ -213,25 +219,26 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
 
       commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_SUCCESS, SAGEPAY_REMOTE_STATUS_PAYMENT, $transaction);
       break;
-    case 'AUTHENTICATED' :
+
+    case 'AUTHENTICATED':
       $arr_charge = array();
       $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
       $arr_charge['amount'] = $tokens['Amount'];
       $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
       watchdog('commerce_sagepay', 'AUTHENTICATED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
       commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_AUTHENTICATE);
-
       break;
-    case 'REGISTERED' :
+
+    case 'REGISTERED':
       $arr_charge = array();
       $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
       $arr_charge['amount'] = $tokens['Amount'];
       $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
       watchdog('commerce_sagepay', 'REGISTERED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
       commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_REGISTERED);
-
       break;
-    case '3DAUTH' :
+
+    case '3DAUTH':
       // Server has replied with a 3D Secure authentication request.
       // Store the returned variables in the order object for processing
       // by the 3D Secure module.
@@ -252,17 +259,14 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
       $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
 
       commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_3D_SECURE);
-
       break;
+
     default:
       // If the status code is anything other than those above, something has gone wrong so log an error and fail.
       watchdog('commerce_sagepay', 'Unrecognised Status response from SagePay for order %order_id (%response_code)', array('%order_id' => $order_id, '%response_code' => $tokens['Status']), WATCHDOG_ERROR);
       drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
       return FALSE;
-
   }
-
-
   return TRUE;
 
 }
@@ -338,49 +342,50 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
 
 
   $query = array(
-    'VPSProtocol' => SAGEPAY_PROTOCOL,
-    'Vendor' => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
-    'VendorTxCode' => $vendor_tx_code,
+    'VPSProtocol'        => SAGEPAY_PROTOCOL,
+    'Vendor'             => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'VendorTxCode'       => $vendor_tx_code,
 //      'TxType' => $tx_type,
-    'Amount' => $order_amount,
-    'Currency' => $total['currency_code'],
-    'Description' => variable_get(SAGEPAY_SETTING_ORDER_DESCRIPTION),
-    'CustomerName' => $billing_name['first_name'] . ' ' . $billing_name['last_name'],
-    'CustomerEmail' => $order->mail,
-    'VendorEmail' => variable_get(SAGEPAY_SETTING_VENDOR_EMAIL),
-    'SendEmail' => variable_get(SAGEPAY_SETTING_SEND_EMAIL),
-    'eMailMessage' => variable_get(SAGEPAY_SETTING_EMAIL_MESSAGE),
-    'BillingSurname' => $billing_name['last_name'],
-    'BillingFirstnames' => $billing_name['first_name'],
-    'BillingAddress1' => $billing_address['thoroughfare'],
-    'BillingAddress2' => $billing_address['premise'],
-    'BillingCity' => $billing_address['locality'],
-    'BillingPostcode' => $billing_address['postal_code'],
-    'BillingCountry' => $billing_address['country'],
+    'Amount'             => $order_amount,
+    'Currency'           => $total['currency_code'],
+    'Description'        => variable_get(SAGEPAY_SETTING_ORDER_DESCRIPTION),
+    'CustomerName'       => $billing_name['first_name'] . ' ' . $billing_name['last_name'],
+    'CustomerEmail'      => $order->mail,
+    'VendorEmail'        => variable_get(SAGEPAY_SETTING_VENDOR_EMAIL),
+    'SendEmail'          => variable_get(SAGEPAY_SETTING_SEND_EMAIL),
+    'eMailMessage'       => variable_get(SAGEPAY_SETTING_EMAIL_MESSAGE),
+    'BillingSurname'     => $billing_name['last_name'],
+    'BillingFirstnames'  => $billing_name['first_name'],
+    'BillingAddress1'    => $billing_address['thoroughfare'],
+    'BillingAddress2'    => $billing_address['premise'],
+    'BillingCity'        => $billing_address['locality'],
+    'BillingPostcode'    => $billing_address['postal_code'],
+    'BillingCountry'     => $billing_address['country'],
     // 'BillingPhone' => $billing_address['postal_code'],
-    'DeliverySurname' => $billing_name['last_name'],
+    'DeliverySurname'    => $billing_name['last_name'],
     'DeliveryFirstnames' => $billing_name['first_name'],
-    'DeliveryAddress1' => $billing_address['thoroughfare'],
-    'DeliveryAddress2' => $billing_address['premise'],
-    'DeliveryCity' => $billing_address['locality'],
-    'DeliveryPostcode' => $billing_address['postal_code'],
-    'DeliveryCountry' => $billing_address['country'],
+    'DeliveryAddress1'   => $billing_address['thoroughfare'],
+    'DeliveryAddress2'   => $billing_address['premise'],
+    'DeliveryCity'       => $billing_address['locality'],
+    'DeliveryPostcode'   => $billing_address['postal_code'],
+    'DeliveryCountry'    => $billing_address['country'],
     // 'DeliveryState' => $billing_address[''],
     // 'DeliveryPhone' => $billing_address[''],
     // 'AllowGiftAid' => '',
-    'ApplyAVSCV2' => variable_get(SAGEPAY_SETTING_APPLY_AVS_CV2),
-    'Apply3DSecure' => variable_get(SAGEPAY_SETTING_APPLY_3D_SECURE),
+    'ApplyAVSCV2'        => variable_get(SAGEPAY_SETTING_APPLY_AVS_CV2),
+    'Apply3DSecure'      => variable_get(SAGEPAY_SETTING_APPLY_3D_SECURE),
     // 'BillingAgreement' => '',
 
   );
 
 
   switch ($integration_method) {
-    case SAGEPAY_FORM :
+    case SAGEPAY_FORM:
       $query['SuccessURL'] = isset($settings['return']) ? $settings['return'] : '';
       $query['FailureURL'] = isset($settings['cancel_return']) ? $settings['cancel_return'] : '';
       break;
-    case SAGEPAY_SERVER :
+
+    case SAGEPAY_SERVER:
       $query['NotificationURL'] = url('commerce-sagepay-server/vps-callback/' . $order->order_number . '/' . $order->data['payment_redirect_key'], array('absolute' => TRUE));
 
       $query['TxType'] = $tx_type;
@@ -391,8 +396,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
       }
       break;
 
-
-    case SAGEPAY_DIRECT :
+    case SAGEPAY_DIRECT:
       $query['TxType'] = $tx_type;
       $query['CardHolder'] = $billing_name['first_name'] . ' ' . $billing_name['last_name'];
       $query['CardNumber'] = $pane_values['credit_card']['number'];
@@ -414,7 +418,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
       }
       break;
 
-    case SAGEPAY_TOKEN :
+    case SAGEPAY_TOKEN:
 //        $query['TxType'] = 'TOKEN';
       $query['TxType'] = $tx_type;
 
@@ -486,6 +490,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
     case SAGEPAY_TXN_MODE_LIVE:
       $encoded_string = _commerce_sagepay_encrypt_and_encode($query_string, variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY));
       break;
+    
     default :
       $encoded_string = _commerce_sagepay_encrypt_and_encode($query_string, variable_get(SAGEPAY_SETTING_TEST_ENCRYPTION_KEY));
   }

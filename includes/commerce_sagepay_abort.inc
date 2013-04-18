@@ -43,13 +43,13 @@ function commerce_sagepay_abort_form_submit($form, &$form_state) {
 
   // Set up the SagePay query array.
   $query = array(
-    'VPSProtocol' => SAGEPAY_PROTOCOL,
-    'TxType' => 'ABORT',
-    'Vendor' => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'VPSProtocol'  => SAGEPAY_PROTOCOL,
+    'TxType'       => 'ABORT',
+    'Vendor'       => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
     'VendorTxCode' => $transaction->payload['VendorTxCode'],
-    'VPSTxId' => $transaction->remote_id,
-    'SecurityKey' => $transaction->payload['SecurityKey'],
-    'TxAuthNo' => $transaction->payload['TxAuthNo'],
+    'VPSTxId'      => $transaction->remote_id,
+    'SecurityKey'  => $transaction->payload['SecurityKey'],
+    'TxAuthNo'     => $transaction->payload['TxAuthNo'],
   );
 
   // Determine the URL to send the request to based on the transaction mode.
@@ -57,9 +57,11 @@ function commerce_sagepay_abort_form_submit($form, &$form_state) {
     case SAGEPAY_TXN_MODE_LIVE:
       $url = SAGEPAY_SHARED_ABORT_TRANSACTION_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $url = SAGEPAY_SHARED_ABORT_TRANSACTION_TEST;
       break;
+
     case SAGEPAY_TXN_MODE_SIMULATION:
       $url = SAGEPAY_SHARED_ABORT_TRANSACTION_SIMULATION;
       break;

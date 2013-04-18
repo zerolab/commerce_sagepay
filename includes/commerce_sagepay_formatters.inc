@@ -212,6 +212,7 @@ function _commerce_sagepay_cart_to_xml($order) {
   drupal_alter('commerce_sagepay_basket_xml', $xml_doc);
 
   $xml_doc->formatOutput = FALSE;
+
   //@todo currently SagePay is rejecting this XML as invalid - need to find out why.
   return $xml_doc;
 }

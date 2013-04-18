@@ -11,14 +11,14 @@
 function _commerce_sagepay_all_card_names() {
 
   return array(
-    'visa' => 'Visa',
-    'uke' => 'Visa Electron',
-    'mc' => 'Mastercard',
-    'amex' => 'American Express',
-    'delta' => 'Delta',
-    'dc' => 'Diners Club',
-    'jcb' => 'JCB',
-    'laser' => 'Laser',
+    'visa'    => 'Visa',
+    'uke'     => 'Visa Electron',
+    'mc'      => 'Mastercard',
+    'amex'    => 'American Express',
+    'delta'   => 'Delta',
+    'dc'      => 'Diners Club',
+    'jcb'     => 'JCB',
+    'laser'   => 'Laser',
     'maestro' => 'Maestro',
   );
 
@@ -129,6 +129,7 @@ function _commerce_sagepay_decode_and_decrypt($str_in, $str_encryption_password)
  */
 function _commerce_sagepay_removePKCS5Padding($decrypted) {
   $pad_char = ord($decrypted[strlen($decrypted) - 1]);
+
   return substr($decrypted, 0, -$pad_char);
 }
 
@@ -159,6 +160,7 @@ function _commerce_sagepay_addPKCS5Padding($input) {
 function _commerce_sagepay_base64Decode($scrambled) {
   $corrected = str_replace(" ", "+", $scrambled);
   $output = base64_decode($corrected);
+
   return $output;
 }
 
@@ -257,6 +259,7 @@ function _commerce_sagepay_clean_input($text, $type) {
 //  $clean_text = preg_replace($pattern, "", $text);
 
   $clean_text = check_plain($text);
+
   return $clean_text;
 
 }

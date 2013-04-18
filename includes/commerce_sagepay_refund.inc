@@ -33,12 +33,12 @@ function commerce_sagepay_refund_form($form, &$form_state, $order, $transaction)
   ));
 
   $form['amount'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Refund amount'),
-    '#description' => check_plain($description),
+    '#type'          => 'textfield',
+    '#title'         => t('Refund amount'),
+    '#description'   => check_plain($description),
     '#default_value' => $default_amount,
-    '#field_suffix' => check_plain($transaction->currency_code),
-    '#size' => 16,
+    '#field_suffix'  => check_plain($transaction->currency_code),
+    '#size'          => 16,
   );
 
   $form = confirm_form($form,
@@ -84,17 +84,17 @@ function commerce_sagepay_refund_form_submit($form, &$form_state) {
 
   // Set up the request to send to SagePay
   $query = array(
-    'VPSProtocol' => SAGEPAY_PROTOCOL,
-    'TxType' => 'REFUND',
-    'Vendor' => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
-    'VendorTxCode' => $refund_transaction_id,
-    'Amount' => $amount,
-    'Currency' => $transaction->currency_code,
-    'Description' => t('Refund against order %order_id', array('%order_id' => $transaction->order_id)),
-    'RelatedVPSTxId' => $transaction->remote_id,
+    'VPSProtocol'         => SAGEPAY_PROTOCOL,
+    'TxType'              => 'REFUND',
+    'Vendor'              => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'VendorTxCode'        => $refund_transaction_id,
+    'Amount'              => $amount,
+    'Currency'            => $transaction->currency_code,
+    'Description'         => t('Refund against order %order_id', array('%order_id' => $transaction->order_id)),
+    'RelatedVPSTxId'      => $transaction->remote_id,
     'RelatedVendorTxCode' => $transaction->payload['VendorTxCode'],
-    'RelatedSecurityKey' => $transaction->payload['SecurityKey'],
-    'RelatedTxAuthNo' => $transaction->payload['TxAuthNo'],
+    'RelatedSecurityKey'  => $transaction->payload['SecurityKey'],
+    'RelatedTxAuthNo'     => $transaction->payload['TxAuthNo'],
   );
 
   // Determine the correct url to sent the request to based on the transaction mode.
@@ -145,7 +145,7 @@ function commerce_sagepay_refund_form_submit($form, &$form_state) {
   $refund_transaction->message = $transaction_message;
   $refund_transaction->message_variables =
     array(
-      '@status' => $response['Status'],
+      '@status'       => $response['Status'],
       '@statusdetail' => $response['StatusDetail'],
     );
 

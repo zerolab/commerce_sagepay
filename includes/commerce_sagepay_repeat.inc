@@ -33,12 +33,12 @@ function commerce_sagepay_repeat_form($form, &$form_state, $order, $transaction)
   ));
 
   $form['amount'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Repeat amount'),
-    '#description' => check_plain($description),
+    '#type'          => 'textfield',
+    '#title'         => t('Repeat amount'),
+    '#description'   => check_plain($description),
     '#default_value' => $default_amount,
-    '#field_suffix' => check_plain($transaction->currency_code),
-    '#size' => 16,
+    '#field_suffix'  => check_plain($transaction->currency_code),
+    '#size'          => 16,
   );
 
   $form = confirm_form($form,
@@ -81,17 +81,17 @@ function commerce_sagepay_repeat_form_submit($form, &$form_state) {
   $int_random_number = rand(0, 32000) * rand(0, 32000);
   $repeat_transaction_id = 'REPEAT_' . $transaction->order_id . '_' . $int_random_number;
   $query = array(
-    'VPSProtocol' => SAGEPAY_PROTOCOL,
-    'TxType' => 'REPEAT',
-    'Vendor' => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
-    'VendorTxCode' => $repeat_transaction_id,
-    'Amount' => $amount,
-    'Currency' => $transaction->currency_code,
-    'Description' => t('Repeat payment against order %order_id', array('%order_id' => $transaction->order_id)),
-    'RelatedVPSTxId' => $transaction->remote_id,
+    'VPSProtocol'         => SAGEPAY_PROTOCOL,
+    'TxType'              => 'REPEAT',
+    'Vendor'              => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'VendorTxCode'        => $repeat_transaction_id,
+    'Amount'              => $amount,
+    'Currency'            => $transaction->currency_code,
+    'Description'         => t('Repeat payment against order %order_id', array('%order_id' => $transaction->order_id)),
+    'RelatedVPSTxId'      => $transaction->remote_id,
     'RelatedVendorTxCode' => $transaction->payload['VendorTxCode'],
-    'RelatedSecurityKey' => $transaction->payload['SecurityKey'],
-    'RelatedTxAuthNo' => $transaction->payload['TxAuthNo'],
+    'RelatedSecurityKey'  => $transaction->payload['SecurityKey'],
+    'RelatedTxAuthNo'     => $transaction->payload['TxAuthNo'],
   );
 
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
@@ -141,7 +141,7 @@ function commerce_sagepay_repeat_form_submit($form, &$form_state) {
   $repeat_transaction->message = $transaction_message;
   $repeat_transaction->message_variables =
     array(
-      '@status' => $response['Status'],
+      '@status'       => $response['Status'],
       '@statusdetail' => $response['StatusDetail'],
     );
 

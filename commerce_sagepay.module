@@ -24,7 +24,7 @@ function commerce_sagepay_menu() {
     'file' => 'includes/commerce_sagepay.admin.inc',
   );
 
-  // Define a path to receive VPS callback. (Server only)
+  // Define a path to receive VPS callback (Server only).
   $items['commerce-sagepay-server/vps-callback/%/%'] = array(
     'page callback' => 'commerce_sagepay_server_handle_callback',
     'page arguments' => array(2, 3),
@@ -33,9 +33,7 @@ function commerce_sagepay_menu() {
     'file' => 'includes/commerce_sagepay_server.inc',
   );
 
-
   // Define a path for a waiting page displayed whilst the iframe is loading.
-  // (Server Only)
   $items['commerce_sagepay/sagepay_waiting_page'] = array(
     'page callback' => 'commerce_sagepay_server_waiting_page',
     'access arguments' => array('access content'),
@@ -182,7 +180,7 @@ function commerce_sagepay_commerce_payment_method_info() {
     'offsite' => TRUE,
     'offsite_autoredirect' => TRUE,
     'callbacks' => array(),
-    'file' => 'includes/commerce_sagepay_form.inc'
+    'file' => 'includes/commerce_sagepay_form.inc',
   );
 
   $payment_methods['commerce_sagepay_server'] = array(
@@ -209,7 +207,7 @@ function commerce_sagepay_commerce_payment_method_info() {
     'offsite' => FALSE,
     'offsite_autoredirect' => FALSE,
     'callbacks' => array(),
-    'file' => 'includes/commerce_sagepay_direct.inc'
+    'file' => 'includes/commerce_sagepay_direct.inc',
   );
 
   return $payment_methods;
@@ -232,7 +230,7 @@ function commerce_sagepay_init() {
 
 
 /**
- * Determines access to the prior authorization release form for SagePay
+ * Determines access to the prior authorization release form for SagePay.
  *
  * @param $order
  *   The order the transaction is on.
@@ -276,7 +274,7 @@ function commerce_sagepay_release_access($order, $transaction) {
 function commerce_sagepay_refund_access($order, $transaction) {
   global $user;
 
-  // Return FALSE if the transaction isn't for SagePay Server or Direct
+  // Return FALSE if the transaction isn't for SagePay Server or Direct.
   if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
     return FALSE;
   }
@@ -313,9 +311,8 @@ function commerce_sagepay_abort_access($order, $transaction) {
 
   global $user;
 
-  // Return FALSE if the transaction isn't for SagePay Server or Direct
+  // Return FALSE if the transaction isn't for SagePay Server or Direct.
   if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
-//      strtoupper($transaction->remote_status) != 'AUTH_ONLY') {
     return FALSE;
   }
 
@@ -498,8 +495,7 @@ function commerce_sagepay_repeat_deferred_access($order, $transaction) {
 
 
 /**
- * Implements hook_page_build().
- * To insert js
+ * Implements hook_page_build() to insert js.
  * @param $page
  */
 function commerce_sagepay_page_build($page) {
