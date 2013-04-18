@@ -293,9 +293,13 @@ function commerce_sagepay_refund_access($order, $transaction) {
       SAGEPAY_REMOTE_STATUS_REGISTERED,
       SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED)
   )
-  ) return FALSE;
+  ) {
+    return FALSE;
+  }
 
-  if ($transaction->status == COMMERCE_PAYMENT_STATUS_FAILURE) return FALSE;
+  if ($transaction->status == COMMERCE_PAYMENT_STATUS_FAILURE) {
+    return FALSE;
+  }
 
   // Allow access if the user can update payments on this order.
   return commerce_payment_transaction_access('update', $order, $user);
@@ -355,7 +359,9 @@ function commerce_sagepay_void_access($order, $transaction) {
   }
 
   // Check if transaction status is not already cancelled.
-  if ($transaction->status == COMMERCE_PAYMENT_STATUS_FAILURE) return FALSE;
+  if ($transaction->status == COMMERCE_PAYMENT_STATUS_FAILURE) {
+    return FALSE;
+  }
 
   // Allow access if the user can update payments on this order.
   return commerce_payment_transaction_access('update', $order, $user);
@@ -462,10 +468,14 @@ function commerce_sagepay_repeat_access($order, $transaction) {
       SAGEPAY_REMOTE_STATUS_REFUNDED,
       SAGEPAY_REMOTE_STATUS_REGISTERED)
   )
-  ) return FALSE;
+  ) {
+    return FALSE;
+  }
 
   // Check if this is a successful transaction.
-  if ($transaction->status != COMMERCE_PAYMENT_STATUS_SUCCESS) return FALSE;
+  if ($transaction->status != COMMERCE_PAYMENT_STATUS_SUCCESS) {
+    return FALSE;
+  }
 
   // Allow access if the user can update payments on this order.
   return commerce_payment_transaction_access('update', $order, $user);
@@ -500,10 +510,14 @@ function commerce_sagepay_repeat_deferred_access($order, $transaction) {
       SAGEPAY_REMOTE_STATUS_REFUNDED,
       SAGEPAY_REMOTE_STATUS_REGISTERED)
   )
-  ) return FALSE;
+  ) {
+    return FALSE;
+  }
 
   // Check if this is a successful transaction.
-  if ($transaction->status != COMMERCE_PAYMENT_STATUS_SUCCESS) return FALSE;
+  if ($transaction->status != COMMERCE_PAYMENT_STATUS_SUCCESS) {
+    return FALSE;
+  }
 
   // Allow access if the user can update payments on this order.
   return commerce_payment_transaction_access('update', $order, $user);
@@ -546,7 +560,8 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
           // Add credit card logos about the card dropdown.
           array_unshift($form['commerce_payment']['payment_details']['credit_card'], array('logos' => array('#markup' => $card_images)));
 
-          // Replace the card selection dropdown with one based on our available cards.
+          // Replace the card selection dropdown with one based on our
+          // available cards.
           $form['commerce_payment']['payment_details']['credit_card']['type']['#options'] = _commerce_sagepay_populate_card_names($enabled_cards);
         }
       }
