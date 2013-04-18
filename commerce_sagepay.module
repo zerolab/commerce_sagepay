@@ -377,7 +377,7 @@ function commerce_sagepay_void_access($order, $transaction) {
 function commerce_sagepay_cancel_access($order, $transaction) {
   global $user;
 
-  // Return FALSE if the transaction isn't for SagePay Server or Direct
+  // Return FALSE if the transaction isn't for SagePay Server or Direct.
   if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
     return FALSE;
   }
@@ -481,12 +481,12 @@ function commerce_sagepay_repeat_access($order, $transaction) {
  *   The payment transaction object to be repeated.
  *
  * @return bool
- *  TRUE or FALSE indicating void access.
+ *   TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_repeat_deferred_access($order, $transaction) {
   global $user;
 
-  // Return FALSE if the transaction isn't for SagePay Server or Direct
+  // Return FALSE if the transaction isn't for SagePay Server or Direct.
   if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
     return FALSE;
   }
@@ -515,7 +515,7 @@ function commerce_sagepay_repeat_deferred_access($order, $transaction) {
  */
 function commerce_sagepay_page_build($page) {
   $url = explode('/', current_path());
-  if (sizeof($url) > 2) {
+  if (count($url) > 2) {
     if ($url[0] == 'checkout' && in_array($url[2], array('review', 'complete'))) {
       drupal_add_js(drupal_get_path('module', 'commerce_sagepay') . '/js/commerce_sagepay_server_iframe.js');
     }
@@ -528,15 +528,6 @@ function commerce_sagepay_page_build($page) {
  *
  * Adjust the credit card area of the payment form to include the card
  * logos of active card types.
- *
- * @param array $form
- *   The form object to be altered.
- *
- * @param array $form_state
- *   The value state of the form.
- *
- * @param int $form_id
- *   The id of the form.
  */
 function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
   // If the current form ID is for a checkout form...
@@ -567,13 +558,6 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
  * Implements hook_theme().
  *
  * Add a theme function for how card logos will be displayed.
- * @param string $existing
- *
- * @param string $type
- *
- * @param string $theme
- *
- * @param string $path
  */
 function commerce_sagepay_theme($existing, $type, $theme, $path) {
   return array(
