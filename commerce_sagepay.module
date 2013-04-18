@@ -218,7 +218,6 @@ function commerce_sagepay_commerce_payment_method_info() {
  *
  * Add the break of out iframe js when on the checkout complete page.
  */
-
 function commerce_sagepay_init() {
   // Add iFrame escape javascript if the page is checkout/x/complete.
   $url = explode('/', $_GET['q']);
@@ -274,7 +273,7 @@ function commerce_sagepay_release_access($order, $transaction) {
  *   The payment transaction object to be captured.
  *
  * @return bool
- *  TRUE or FALSE indicating refund access.
+ *   TRUE or FALSE indicating refund access.
  */
 function commerce_sagepay_refund_access($order, $transaction) {
   global $user;
@@ -283,7 +282,7 @@ function commerce_sagepay_refund_access($order, $transaction) {
   if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
     return FALSE;
   }
-  // Return FALSE is the remote status is FAIL or INVALID
+  // Return FALSE is the remote status is FAIL or INVALID.
   if (in_array($transaction->remote_status,
     array(
       SAGEPAY_REMOTE_STATUS_FAIL,
@@ -303,7 +302,7 @@ function commerce_sagepay_refund_access($order, $transaction) {
 }
 
 /**
- * Determines access to the abort form for SagePay
+ * Determines access to the abort form for SagePay.
  *
  * @param commerce_order $order
  *   The order the transaction is on.
@@ -311,7 +310,8 @@ function commerce_sagepay_refund_access($order, $transaction) {
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be aborted.
  *
- * @return bool TRUE or FALSE indicating abort access.
+ * @return bool
+ *  TRUE or FALSE indicating abort access.
  */
 function commerce_sagepay_abort_access($order, $transaction) {
 
@@ -331,7 +331,7 @@ function commerce_sagepay_abort_access($order, $transaction) {
 }
 
 /**
- * Determines access to the void form for SagePay
+ * Determines access to the void form for SagePay.
  *
  * @param commerce_order $order
  *   The order the transaction is on.
@@ -339,7 +339,8 @@ function commerce_sagepay_abort_access($order, $transaction) {
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be aborted.
  *
- * @return bool TRUE or FALSE indicating void access.
+ * @return bool
+ *  TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_void_access($order, $transaction) {
   global $user;
@@ -353,7 +354,7 @@ function commerce_sagepay_void_access($order, $transaction) {
     return FALSE;
   }
 
-  // Check if transaction status is not already cancelled
+  // Check if transaction status is not already cancelled.
   if ($transaction->status == COMMERCE_PAYMENT_STATUS_FAILURE) return FALSE;
 
   // Allow access if the user can update payments on this order.
@@ -362,7 +363,7 @@ function commerce_sagepay_void_access($order, $transaction) {
 
 
 /**
- * Determines access to the cancel form for SagePay
+ * Determines access to the cancel form for SagePay.
  *
  * @param commerce_order $order
  *   The order the transaction is on.
@@ -370,7 +371,8 @@ function commerce_sagepay_void_access($order, $transaction) {
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be aborted.
  *
- * @return bool TRUE or FALSE indicating void access.
+ * @return bool
+ *  TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_cancel_access($order, $transaction) {
   global $user;
@@ -406,7 +408,8 @@ function commerce_sagepay_cancel_access($order, $transaction) {
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be authorised.
  *
- * @return bool TRUE or FALSE indicating void access.
+ * @return bool
+ *  TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_authorise_access($order, $transaction) {
   global $user;
@@ -431,7 +434,7 @@ function commerce_sagepay_authorise_access($order, $transaction) {
 
 
 /**
- * Determines access to the repeat form for SagePay
+ * Determines access to the repeat form for SagePay.
  *
  * @param commerce_order $order
  *   The order the transaction is on.
@@ -439,7 +442,8 @@ function commerce_sagepay_authorise_access($order, $transaction) {
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be repeated.
  *
- * @return bool TRUE or FALSE indicating void access.
+ * @return bool
+ *  TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_repeat_access($order, $transaction) {
   global $user;
@@ -476,7 +480,8 @@ function commerce_sagepay_repeat_access($order, $transaction) {
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be repeated.
  *
- * @return bool TRUE or FALSE indicating void access.
+ * @return bool
+ *  TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_repeat_deferred_access($order, $transaction) {
   global $user;
@@ -565,6 +570,7 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
 
 /**
  * Implements hook_theme().
+ *
  * Add a theme function for how card logos will be displayed.
  * @param string $existing
  *
