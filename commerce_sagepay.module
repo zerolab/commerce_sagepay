@@ -215,6 +215,7 @@ function commerce_sagepay_commerce_payment_method_info() {
 
 /**
  * Implements hook_init().
+ *
  * Add the break of out iframe js when on the checkout complete page.
  */
 
@@ -234,10 +235,12 @@ function commerce_sagepay_init() {
  *
  * @param commerce_order $order
  *   The order the transaction is on.
+ *
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be released.
  *
- * @return bool TRUE or FALSE indicating release access.
+ * @return bool
+ *   TRUE or FALSE indicating release access.
  */
 function commerce_sagepay_release_access($order, $transaction) {
   global $user;
@@ -262,14 +265,16 @@ function commerce_sagepay_release_access($order, $transaction) {
 }
 
 /**
- * Determines access to the refund form for SagePay
+ * Determines access to the refund form for SagePay.
  *
  * @param commerce_order $order
  *   The order the transaction is on.
+ *
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be captured.
  *
- * @return bool TRUE or FALSE indicating refund access.
+ * @return bool
+ *  TRUE or FALSE indicating refund access.
  */
 function commerce_sagepay_refund_access($order, $transaction) {
   global $user;
@@ -302,6 +307,7 @@ function commerce_sagepay_refund_access($order, $transaction) {
  *
  * @param commerce_order $order
  *   The order the transaction is on.
+ *
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be aborted.
  *
@@ -329,6 +335,7 @@ function commerce_sagepay_abort_access($order, $transaction) {
  *
  * @param commerce_order $order
  *   The order the transaction is on.
+ *
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be aborted.
  *
@@ -359,6 +366,7 @@ function commerce_sagepay_void_access($order, $transaction) {
  *
  * @param commerce_order $order
  *   The order the transaction is on.
+ *
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be aborted.
  *
@@ -394,6 +402,7 @@ function commerce_sagepay_cancel_access($order, $transaction) {
  *
  * @param commerce_order $order
  *   The order the transaction is on.
+ *
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be authorised.
  *
@@ -426,6 +435,7 @@ function commerce_sagepay_authorise_access($order, $transaction) {
  *
  * @param commerce_order $order
  *   The order the transaction is on.
+ *
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be repeated.
  *
@@ -458,10 +468,11 @@ function commerce_sagepay_repeat_access($order, $transaction) {
 }
 
 /**
- * Determines access to the repeat form for SagePay
+ * Determines access to the repeat form for SagePay.
  *
  * @param commerce_order $order
  *   The order the transaction is on.
+ *
  * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be repeated.
  *
@@ -495,8 +506,12 @@ function commerce_sagepay_repeat_deferred_access($order, $transaction) {
 
 
 /**
- * Implements hook_page_build() to insert js.
+ * Implements hook_page_build().
+ *
+ * To insert js
+ *
  * @param $page
+ *  The build object being built.
  */
 function commerce_sagepay_page_build($page) {
   $url = explode('/', current_path());
@@ -513,9 +528,15 @@ function commerce_sagepay_page_build($page) {
  *
  * Adjust the credit card area of the payment form to include the card
  * logos of active card types.
+ *
  * @param array $form
+ *  The form object to be altered.
+ *
  * @param array $form_state
+ *  The value state of the form.
+ *
  * @param int $form_id
+ *  The id of the form.
  */
 function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
   // If the current form ID is for a checkout form...
@@ -535,11 +556,8 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
           array_unshift($form['commerce_payment']['payment_details']['credit_card'], array('logos' => array('#markup' => $card_images)));
 
           // Replace the card selection dropdown with one based on our available cards.
-
           $form['commerce_payment']['payment_details']['credit_card']['type']['#options'] = _commerce_sagepay_populate_card_names($enabled_cards);
         }
-
-
       }
     }
   }
@@ -549,10 +567,12 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
  * Implements hook_theme().
  * Add a theme function for how card logos will be displayed.
  * @param string $existing
+ *
  * @param string $type
+ *
  * @param string $theme
+ *
  * @param string $path
- * @return array
  */
 function commerce_sagepay_theme($existing, $type, $theme, $path) {
   return array(
@@ -565,10 +585,15 @@ function commerce_sagepay_theme($existing, $type, $theme, $path) {
 
 /**
  * Theme function determining how card logos are displayed.
+ *
  * This is invoked by a form alter and adds the card logos as a Suffix
  * to the card type dropdown.
+ *
  * @param array $enabled_cards
+ *  An array of currently enabled cards.
+ *
  * @return string
+ *  A themed output of card logos.
  */
 function theme_commerce_sagepay_card_logos($enabled_cards) {
   $output = '<div class="card_type_images">';
