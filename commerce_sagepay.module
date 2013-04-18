@@ -598,7 +598,10 @@ function commerce_sagepay_theme($existing, $type, $theme, $path) {
 function theme_commerce_sagepay_card_logos($enabled_cards) {
   $output = '<div class="card_type_images">';
   foreach ($enabled_cards['enabled_cards'] as $c) {
-    if ($c != '0') $output .= '<img src="/' . drupal_get_path('module', 'commerce_sagepay') . '/img/' . $c . '.png" /> &nbsp;';
+    if ($c != '0') {
+      $output .= '<img src="/' . drupal_get_path('module',
+        'commerce_sagepay') . '/img/' . $c . '.png" /> &nbsp;';
+    }
   }
   $output .= '</div>';
   return $output;
