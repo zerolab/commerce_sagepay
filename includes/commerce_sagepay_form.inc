@@ -7,11 +7,16 @@
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_utils');
 
-
 /**
- * Implements hook_redirect_form.
- **/
-function commerce_sagepay_form_redirect_form($form, &$form_state, $order, $payment_method) {
+ * Implements hook_form_redirect_form().
+ * @param array $form
+ * @param array $form_state
+ * @param commerce_order $order
+ * @param string $payment_method
+ * @return array
+ */
+function commerce_sagepay_form_redirect_form($form, &$form_state, $order,
+                                              $payment_method) {
   // Return an error if the enabling action's settings haven't been configured.
   if (!variable_get(SAGEPAY_SETTING_VENDOR_NAME)) {
     drupal_set_message(t("SagePay Form Integration is not configured for use.
@@ -47,7 +52,7 @@ function commerce_sagepay_form_redirect_form($form, &$form_state, $order, $payme
 }
 
 /**
- * Implements hook_redirect_form_validate
+ * Implements hook_redirect_form_validate().
  */
 function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
   // SagePay sends a callback to the site as a single encrypted string called Crypt
@@ -126,57 +131,59 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
     return FALSE;
   }
 
-  // default no charge for failed transactions
+  // Default no charge for failed transactions
   // (these values will not be in the callback for a failed or cancelled transaction)
   $def_charge = array('amount' => 0, 'currency_code' => '');
 
   // Check for a valid status callback.
   switch ($tokens['Status']) {
-    case 'ABORT' :
+    case 'ABORT':
       watchdog('commerce_sagepay', 'ABORT error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Your SagePay transaction was aborted.'), 'error');
-
       return FALSE;
-    case 'NOTAUTHED' :
+
+    case 'NOTAUTHED':
       watchdog('commerce_sagepay', 'NOTAUTHED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Your transaction was not authorised by SagePay'), 'error');
-
       return FALSE;
-    case 'REJECTED' :
+
+    case 'REJECTED':
       watchdog('commerce_sagepay', 'REJECTED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Your transaction was rejected by SagePay'), 'error');
-
       return FALSE;
-    case 'MALFORMED' :
+
+    case 'MALFORMED':
       watchdog('commerce_sagepay', 'MALFORMED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Sorry the transaction has failed.'), 'error');
-
       return FALSE;
-    case 'INVALID' :
+
+    case 'INVALID':
       watchdog('commerce_sagepay', 'INVALID error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ERROR);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Sorry the transaction has failed.'), 'error');
-
       return FALSE;
-    case 'ERROR' :
+
+    case 'ERROR':
       watchdog('commerce_sagepay', 'System ERROR from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ERROR);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
       drupal_set_message(t('Sorry an error occurred while processing your transaction.'), 'error');
-
       return FALSE;
-    case 'OK' :
+
+    case 'OK':
       watchdog('commerce_sagepay', 'OK Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
       $remote_status = SAGEPAY_REMOTE_STATUS_OK;
       break;
-    case 'AUTHENTICATED' :
+
+    case 'AUTHENTICATED':
       watchdog('commerce_sagepay', 'AUTHENTICATED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
       $remote_status = SAGEPAY_REMOTE_STATUS_AUTHENTICATE;
       break;
-    case 'REGISTERED' :
+
+    case 'REGISTERED':
       watchdog('commerce_sagepay', 'REGISTERED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
       $remote_status = SAGEPAY_REMOTE_STATUS_REGISTERED;
       break;
@@ -184,16 +191,12 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
     default:
       // If the status code is anything other than those above, something has gone wrong so log an error and fail.
       watchdog('commerce_sagepay', 'Unrecognised Status response from SagePay for order %order_id (%response_code)', array('%order_id' => $order_id, '%response_code' => $tokens['Status']), WATCHDOG_ERROR);
-
       return FALSE;
 
   }
 
   // Validation successful.
   // Create a transaction and associate it with the order.
-//    function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens, $transaction_status) {
-
-
   $charge = array();
   $charge['amount'] = $tokens['Amount'] * 100; // convert back to commerce int
   $charge['currency_code'] = $order->commerce_order_total['und'][0]['currency_code'];
