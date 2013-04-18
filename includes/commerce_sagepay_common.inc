@@ -490,7 +490,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
     case SAGEPAY_TXN_MODE_LIVE:
       $encoded_string = _commerce_sagepay_encrypt_and_encode($query_string, variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY));
       break;
-    
+
     default :
       $encoded_string = _commerce_sagepay_encrypt_and_encode($query_string, variable_get(SAGEPAY_SETTING_TEST_ENCRYPTION_KEY));
   }

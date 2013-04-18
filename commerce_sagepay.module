@@ -215,13 +215,13 @@ function commerce_sagepay_commerce_payment_method_info() {
 
 /**
  * Implements hook_init().
- * Add the break of out iframe js when on the checkout complete page (server only).
- **/
+ * Add the break of out iframe js when on the checkout complete page.
+ */
 
 function commerce_sagepay_init() {
   // Add iFrame escape javascript if the page is checkout/x/complete.
   $url = explode('/', $_GET['q']);
-  if (sizeof($url) > 2) {
+  if (count($url) > 2) {
     if ($url[0] == 'checkout' && $url[2] == 'complete') {
       drupal_add_js(drupal_get_path('module', 'commerce_sagepay') . '/js/commerce_sagepay_server_iframe.js');
     }
@@ -232,9 +232,9 @@ function commerce_sagepay_init() {
 /**
  * Determines access to the prior authorization release form for SagePay.
  *
- * @param $order
+ * @param commerce_order $order
  *   The order the transaction is on.
- * @param $transaction
+ * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be released.
  *
  * @return bool TRUE or FALSE indicating release access.
@@ -264,9 +264,9 @@ function commerce_sagepay_release_access($order, $transaction) {
 /**
  * Determines access to the refund form for SagePay
  *
- * @param $order
+ * @param commerce_order $order
  *   The order the transaction is on.
- * @param $transaction
+ * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be captured.
  *
  * @return bool TRUE or FALSE indicating refund access.
@@ -300,9 +300,9 @@ function commerce_sagepay_refund_access($order, $transaction) {
 /**
  * Determines access to the abort form for SagePay
  *
- * @param $order
+ * @param commerce_order $order
  *   The order the transaction is on.
- * @param $transaction
+ * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be aborted.
  *
  * @return bool TRUE or FALSE indicating abort access.
@@ -327,9 +327,9 @@ function commerce_sagepay_abort_access($order, $transaction) {
 /**
  * Determines access to the void form for SagePay
  *
- * @param $order
+ * @param commerce_order $order
  *   The order the transaction is on.
- * @param $transaction
+ * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be aborted.
  *
  * @return bool TRUE or FALSE indicating void access.
@@ -357,9 +357,9 @@ function commerce_sagepay_void_access($order, $transaction) {
 /**
  * Determines access to the cancel form for SagePay
  *
- * @param $order
+ * @param commerce_order $order
  *   The order the transaction is on.
- * @param $transaction
+ * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be aborted.
  *
  * @return bool TRUE or FALSE indicating void access.
@@ -392,9 +392,9 @@ function commerce_sagepay_cancel_access($order, $transaction) {
 /**
  * Determines access to the authorise form for SagePay
  *
- * @param $order
+ * @param commerce_order $order
  *   The order the transaction is on.
- * @param $transaction
+ * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be authorised.
  *
  * @return bool TRUE or FALSE indicating void access.
@@ -424,9 +424,9 @@ function commerce_sagepay_authorise_access($order, $transaction) {
 /**
  * Determines access to the repeat form for SagePay
  *
- * @param $order
+ * @param commerce_order $order
  *   The order the transaction is on.
- * @param $transaction
+ * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be repeated.
  *
  * @return bool TRUE or FALSE indicating void access.
@@ -460,9 +460,9 @@ function commerce_sagepay_repeat_access($order, $transaction) {
 /**
  * Determines access to the repeat form for SagePay
  *
- * @param $order
+ * @param commerce_order $order
  *   The order the transaction is on.
- * @param $transaction
+ * @param commerce_payment_transaction $transaction
  *   The payment transaction object to be repeated.
  *
  * @return bool TRUE or FALSE indicating void access.
@@ -513,9 +513,9 @@ function commerce_sagepay_page_build($page) {
  *
  * Adjust the credit card area of the payment form to include the card
  * logos of active card types.
- * @param $form
- * @param $form_state
- * @param $form_id
+ * @param array $form
+ * @param array $form_state
+ * @param int $form_id
  */
 function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
   // If the current form ID is for a checkout form...
@@ -548,10 +548,10 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
 /**
  * Implements hook_theme().
  * Add a theme function for how card logos will be displayed.
- * @param $existing
- * @param $type
- * @param $theme
- * @param $path
+ * @param string $existing
+ * @param string $type
+ * @param string $theme
+ * @param string $path
  * @return array
  */
 function commerce_sagepay_theme($existing, $type, $theme, $path) {
@@ -567,7 +567,7 @@ function commerce_sagepay_theme($existing, $type, $theme, $path) {
  * Theme function determining how card logos are displayed.
  * This is invoked by a form alter and adds the card logos as a Suffix
  * to the card type dropdown.
- * @param $enabled_cards
+ * @param array $enabled_cards
  * @return string
  */
 function theme_commerce_sagepay_card_logos($enabled_cards) {
