@@ -13,9 +13,13 @@ module_load_include('inc', 'commerce_sagepay',
 
 /**
  * Settings form containing all configuration for the SagePay module.
+ *
  * @param array $form
+ *   The form array.
  * @param array $form_state
+ *   The form state.
  * @return mixed
+ *   The completed form.
  */
 function commerce_sagepay_settings_form($form, &$form_state) {
 
@@ -35,7 +39,6 @@ function commerce_sagepay_settings_form($form, &$form_state) {
 
   // Settings related to the emails sent from SagePay during the course
   // of a transaction.
-
   $form['emails'] = array(
     '#type'        => 'fieldset',
     '#title'       => 'Emails',
@@ -72,8 +75,6 @@ function commerce_sagepay_settings_form($form, &$form_state) {
 
   // Default transaction settings.
   // These can be overriden using hook_sagepay_order_data_alter.
-
-
   $form['transaction'] = array(
     '#type'        => 'fieldset',
     '#title'       => 'Transaction Settings',
@@ -184,7 +185,6 @@ function commerce_sagepay_settings_form($form, &$form_state) {
   );
 
   // Options for overriding card data during testing.
-
   $form['testing'] = array(
     '#type'        => 'fieldset',
     '#title'       => 'Testing',
@@ -214,7 +214,6 @@ function commerce_sagepay_settings_form($form, &$form_state) {
   );
 
   // Items only relevant to SagePay Server integration.
-
   $form['server_specific'] = array(
     '#type'        => 'fieldset',
     '#title'       => 'SagePay Server Integration Specific Settings',
@@ -237,7 +236,6 @@ function commerce_sagepay_settings_form($form, &$form_state) {
   );
 
   // Items only relevant to SagePay Form integration.
-  
   $form['form_specific'] = array(
     '#type'        => 'fieldset',
     '#title'       => 'SagePay Form Integration Specific Settings',
