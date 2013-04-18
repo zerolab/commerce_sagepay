@@ -1,5 +1,4 @@
 <?php
-// $Id:
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
 
 /**
