@@ -97,7 +97,6 @@
       '#options' => array(
         SAGEPAY_TXN_MODE_LIVE => t('Live transactions in a live account.'),
         SAGEPAY_TXN_MODE_TEST => t('Test transactions in a test account.'),
-        SAGEPAY_TXN_MODE_SIMULATION => t('Simulation Account.'),
         SAGEPAY_TXN_MODE_SHOWPOST => t('Show Post (for debugging with SagePay).'),
       ),
       '#default_value' => variable_get(SAGEPAY_SETTING_TRANSACTION_MODE, SAGEPAY_TXN_MODE_TEST),
