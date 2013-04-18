@@ -311,7 +311,7 @@ function commerce_sagepay_refund_access($order, $transaction) {
  *   The payment transaction object to be aborted.
  *
  * @return bool
- *  TRUE or FALSE indicating abort access.
+ *   TRUE or FALSE indicating abort access.
  */
 function commerce_sagepay_abort_access($order, $transaction) {
 
@@ -340,12 +340,12 @@ function commerce_sagepay_abort_access($order, $transaction) {
  *   The payment transaction object to be aborted.
  *
  * @return bool
- *  TRUE or FALSE indicating void access.
+ *   TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_void_access($order, $transaction) {
   global $user;
 
-  // Return FALSE if the transaction isn't for SagePay Server or Direct
+  // Return FALSE if the transaction isn't for SagePay Server or Direct.
   if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
     return FALSE;
   }
@@ -372,7 +372,7 @@ function commerce_sagepay_void_access($order, $transaction) {
  *   The payment transaction object to be aborted.
  *
  * @return bool
- *  TRUE or FALSE indicating void access.
+ *   TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_cancel_access($order, $transaction) {
   global $user;
@@ -400,7 +400,7 @@ function commerce_sagepay_cancel_access($order, $transaction) {
 }
 
 /**
- * Determines access to the authorise form for SagePay
+ * Determines access to the authorise form for SagePay.
  *
  * @param commerce_order $order
  *   The order the transaction is on.
@@ -409,12 +409,12 @@ function commerce_sagepay_cancel_access($order, $transaction) {
  *   The payment transaction object to be authorised.
  *
  * @return bool
- *  TRUE or FALSE indicating void access.
+ *   TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_authorise_access($order, $transaction) {
   global $user;
 
-  // Return FALSE if the transaction isn't for SagePay Server or Direct
+  // Return FALSE if the transaction isn't for SagePay Server or Direct.
   if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
     return FALSE;
   }
@@ -443,12 +443,12 @@ function commerce_sagepay_authorise_access($order, $transaction) {
  *   The payment transaction object to be repeated.
  *
  * @return bool
- *  TRUE or FALSE indicating void access.
+ *   TRUE or FALSE indicating void access.
  */
 function commerce_sagepay_repeat_access($order, $transaction) {
   global $user;
 
-  // Return FALSE if the transaction isn't for SagePay Server or Direct
+  // Return FALSE if the transaction isn't for SagePay Server or Direct.
   if ($transaction->payment_method != 'commerce_sagepay_server' && $transaction->payment_method != 'commerce_sagepay_direct') {
     return FALSE;
   }
@@ -512,11 +512,6 @@ function commerce_sagepay_repeat_deferred_access($order, $transaction) {
 
 /**
  * Implements hook_page_build().
- *
- * To insert js
- *
- * @param $page
- *  The build object being built.
  */
 function commerce_sagepay_page_build($page) {
   $url = explode('/', current_path());
@@ -535,13 +530,13 @@ function commerce_sagepay_page_build($page) {
  * logos of active card types.
  *
  * @param array $form
- *  The form object to be altered.
+ *   The form object to be altered.
  *
  * @param array $form_state
- *  The value state of the form.
+ *   The value state of the form.
  *
  * @param int $form_id
- *  The id of the form.
+ *   The id of the form.
  */
 function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
   // If the current form ID is for a checkout form...
@@ -596,10 +591,10 @@ function commerce_sagepay_theme($existing, $type, $theme, $path) {
  * to the card type dropdown.
  *
  * @param array $enabled_cards
- *  An array of currently enabled cards.
+ *   An array of currently enabled cards.
  *
  * @return string
- *  A themed output of card logos.
+ *   A themed output of card logos.
  */
 function theme_commerce_sagepay_card_logos($enabled_cards) {
   $output = '<div class="card_type_images">';
