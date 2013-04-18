@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file = commerce_sagepay_constants.
+ * @file
+ * commerce_sagepay_constants.
  * Provides constants for most other Commerce modules
  */
 
@@ -15,7 +16,7 @@ define('SAGEPAY_TXN_MODE_TEST', 'test');
 define('SAGEPAY_TXN_MODE_SHOWPOST', 'showpost');
 define('SAGEPAY_TXN_MODE_SIMULATION', 'simulation');
 
-// Define variable to indicate which version of the SagePay protocol we are using
+// Define variable to indicate which version of the SagePay protocol.
 define('SAGEPAY_PROTOCOL', '3.0');
 
 // Define Server URLs for all integration methods.
@@ -73,8 +74,7 @@ define('SAGEPAY_DIRECT_TOKEN_REGISTER_TEST', 'https://test.sagepay.com/gateway/s
 define('SAGEPAY_TOKEN_REMOVE_LIVE', 'https://live.sagepay.com/gateway/service/removetoken.vsp');
 define('SAGEPAY_TOKEN_REMOVE_TEST', 'https://test.sagepay.com/gateway/service/removetoken.vsp');
 
-
-// Define settings variable names
+// Define settings variable names.
 define('SAGEPAY_SETTING_VENDOR_NAME', 'sagepay_vendor');
 define('SAGEPAY_SETTING_VENDOR_EMAIL', 'sagepay_vendor_email');
 define('SAGEPAY_SETTING_TRANSACTION_TYPE', 'sagepay_txn_type');
@@ -97,20 +97,19 @@ define('SAGEPAY_SETTING_USE_IFRAME', 'sagepay_use_iframe');
 define('SAGEPAY_SETTING_LOW_PROFILE', 'sagepay_use_low_profile_pages');
 define('SAGEPAY_SETTING_REQUEST_TOKEN', 'sagepay_request_token');
 
-// Define Settings for integration method
+// Define Settings for integration method.
 define('SAGEPAY_FORM', 'form');
 define('SAGEPAY_SERVER', 'server');
 define('SAGEPAY_DIRECT', 'direct');
 define('SAGEPAY_TOKEN', 'token');
 
-
-// Define validation rule constants
+// Define validation rule constants.
 define('SAGEPAY_VALIDATE_NAME', 'name');
 define('SAGEPAY_VALIDATE_ADDRESS', 'address');
 define('SAGEPAY_VALIDATE_POSTCODE', 'postcode');
 define('SAGEPAY_VALIDATE_EMAIL', 'email');
 
-// Define remote status codes for SagePay
+// Define remote status codes for SagePay.
 define('SAGEPAY_REMOTE_STATUS_DEFERRERED', 'DEFERRED');
 define('SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED', 'REPEAT_DEFERRED');
 define('SAGEPAY_REMOTE_STATUS_AUTHENTICATE', 'AUTHENTICATE');
@@ -124,4 +123,3 @@ define('SAGEPAY_REMOTE_STATUS_PAYMENT', 'PAYMENT');
 define('SAGEPAY_REMOTE_STATUS_REFUNDED', 'REFUNDED');
 define('SAGEPAY_REMOTE_STATUS_CANCELLED', 'CANCELLED');
 define('SAGEPAY_REMOTE_STATUS_3D_SECURE', '3DSECURE');
-

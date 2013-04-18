@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file commerce_sagepay_authorise.inc
+ * @file
+ * commerce_sagepay_authorise.inc
  * Handles payment authorisations.
  */
 
@@ -49,7 +50,7 @@ function commerce_sagepay_authorise_form($form, &$form_state, $order, $transacti
       '0' => 'If AVS/CV2 enabled then check them. If rules apply, use rules. (default)',
       '1' => 'Force AVS/CV2 checks even if not enabled for the account. If rules apply, use rules.',
       '2' => 'Force NO AVS/CV2 checks even if enabled on account. 3 = Force AVS/CV2 checks even if not enabled for the account but DON’T apply any rules.',
-    )
+    ),
   );
 
   $form = confirm_form($form,
@@ -113,14 +114,16 @@ function commerce_sagepay_authorise_form_submit($form, &$form_state) {
     'ApplyAVSCV2'         => $form_state['values']['cv2_check'],
   );
 
-  // Determine the correct url to send the request depending on the Transaction Mode.
+  // Determine the correct url to send the request depending on the Mode.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
     case SAGEPAY_TXN_MODE_LIVE:
       $url = SAGEPAY_SHARED_AUTHORISE_TRANSACTION_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $url = SAGEPAY_SHARED_AUTHORISE_TRANSACTION_TEST;
       break;
+
     case SAGEPAY_TXN_MODE_SIMULATION:
       $url = SAGEPAY_SHARED_AUTHORISE_TRANSACTION_SIMULATION;
       break;
@@ -144,7 +147,6 @@ function commerce_sagepay_authorise_form_submit($form, &$form_state) {
 
   $authorise_transaction->payload = $response;
 
-
   switch ($response['Status']) {
     case 'OK':
       drupal_set_message(t('Payment Authorised successfully.'));
@@ -161,8 +163,8 @@ function commerce_sagepay_authorise_form_submit($form, &$form_state) {
   $transaction_message = 'Status @status, @statusdetail. ';
 
   $authorise_transaction->message = $transaction_message;
-  $authorise_transaction->message_variables =
-    array(
+  $authorise_transaction->message_variables
+    = array(
       '@status'       => $response['Status'],
       '@statusdetail' => $response['StatusDetail'],
     );

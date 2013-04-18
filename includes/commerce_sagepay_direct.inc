@@ -1,6 +1,7 @@
 <?php
 /**
- * @file commerce_sagepay_direct.inc
+ * @file
+ * commerce_sagepay_direct.inc
  * Functions for Direct integration.
  */
 
@@ -25,7 +26,7 @@ function commerce_sagepay_direct_submit_form($payment_method, $pane_values, $che
     'number'     => '',
     'start_date' => '',
     'issue'      => '',
-    'code'       => ''
+    'code'       => '',
   );
 
   return commerce_payment_credit_card_form($credit_card_settings);
@@ -94,7 +95,7 @@ function commerce_sagepay_direct_submit_form_submit($payment_method, $pane_form,
   $settings = array();
   $data = _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_address, $delivery_address, SAGEPAY_DIRECT, $pane_values);
 
-  // If we are in TEST mode, replace the actual details entered with the test data required.
+  // If in TEST mode, replace the actual details entered with test data.
   if (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE) == SAGEPAY_TXN_MODE_TEST &&
     variable_get(SAGEPAY_SETTING_USE_TEST_DATA, 0) == 1
   ) {
@@ -106,26 +107,29 @@ function commerce_sagepay_direct_submit_form_submit($payment_method, $pane_form,
     _commerce_sagepay_substitute_for_test_data($data);
   }
 
-  // create a POST to send to SagePay
+  // Create a POST to send to SagePay.
   $post = '';
   foreach ($data as $name => $value) {
     $post .= urlencode($name) . '=' . urlencode($value) . '&';
   }
 
-  // chop off the last &
+  // Chop off the last &.
   $post = substr($post, 0, -1);
 
-  // determine the correct url based on the transaction mode.
+  // Determine the correct url based on the transaction mode.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
     case SAGEPAY_TXN_MODE_LIVE:
       $server_url = SAGEPAY_DIRECT_SERVER_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $server_url = SAGEPAY_DIRECT_SERVER_TEST;
       break;
+
     case SAGEPAY_TXN_MODE_SHOWPOST:
       $server_url = SAGEPAY_DIRECT_SERVER_SHOWPOST;
       break;
+
     case SAGEPAY_TXN_MODE_SIMULATION:
       $server_url = SAGEPAY_DIRECT_SERVER_SIMULATION;
       break;
@@ -136,11 +140,10 @@ function commerce_sagepay_direct_submit_form_submit($payment_method, $pane_form,
   }
   drupal_alter('sagepay_url', $server_url, $pane_values);
 
-  // send post
+  // Send post.
   $response = _commerce_sagepay_request_post($server_url, $post);
 
-  // Collect additional data to store in the transaction
-
+  // Collect additional data to store in the transaction.
   $response['Last4Digits'] = substr($pane_values['credit_card']['number'], 12, 16);
   $response['ExpMonth'] = $pane_values['credit_card']['exp_month'];
   $response['ExpYear'] = $pane_values['credit_card']['exp_year'];
@@ -151,8 +154,4 @@ function commerce_sagepay_direct_submit_form_submit($payment_method, $pane_form,
   $result = commerce_sagepay_process_response($payment_method, $order, $response);
 
   return $result;
-
-
 }
-
-

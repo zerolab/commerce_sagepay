@@ -1,7 +1,9 @@
 <?php
 
 /**
- * @file Handle cancel transactions.
+ * @file
+ * commerce_sagepay_cancel.inc
+ * Handle cancel transactions.
  */
 
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
@@ -32,7 +34,7 @@ function commerce_sagepay_cancel_form($form, &$form_state, $order, $transaction)
 
 
 /**
- * Submit handler
+ * Submit handler.
  */
 function commerce_sagepay_cancel_form_submit($form, &$form_state) {
   $transaction = $form_state['transaction'];
@@ -47,14 +49,16 @@ function commerce_sagepay_cancel_form_submit($form, &$form_state) {
     'SecurityKey'  => $transaction->payload['SecurityKey'],
   );
 
-  // Determine the correct url to send the request to based on the transaction mode.
+  // Determine the correct url to send the request to based on the mode.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
     case SAGEPAY_TXN_MODE_LIVE:
       $url = SAGEPAY_SHARED_CANCEL_TRANSACTION_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $url = SAGEPAY_SHARED_CANCEL_TRANSACTION_TEST;
       break;
+
     case SAGEPAY_TXN_MODE_SIMULATION:
       $url = SAGEPAY_SHARED_CANCEL_TRANSACTION_SIMULATION;
       break;
