@@ -1,6 +1,6 @@
 <?php
 // $Id:
-  module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
+module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
 
 /**
  * Implements hook_menu
@@ -48,12 +48,12 @@ function sagepay_3d_secure_commerce_checkout_router($order, $checkout_page) {
 
     if (!isset($order->data['extra_authorisation'])) {
       $skip_3d_secure = TRUE;
-    }
-    else {
+    } else {
       if (!isset($order->data['extra_authorisation']['PAReq']) ||
-          !isset($order->data['extra_authorisation']['ACSURL']) ||
-          !isset($order->data['extra_authorisation']['MD']) ||
-          !isset($order->data['extra_authorisation']['TermUrl'])) {
+        !isset($order->data['extra_authorisation']['ACSURL']) ||
+        !isset($order->data['extra_authorisation']['MD']) ||
+        !isset($order->data['extra_authorisation']['TermUrl'])
+      ) {
         watchdog('commerce_3d_secure', 'Only partial 3D Secure Data present, cannot proceed so skipping this step', array(), WATCHDOG_WARNING);
         $skip_3d_secure = TRUE;
       }
@@ -62,7 +62,7 @@ function sagepay_3d_secure_commerce_checkout_router($order, $checkout_page) {
     if ($skip_3d_secure) {
       // if there are no 3d secure markers in the order, we're done. Go to checkout completion page or to the offsite redirect page.
       $checkout_pages = commerce_checkout_pages();
-      $next_step =  $checkout_pages['3d_secure']['next_page'];
+      $next_step = $checkout_pages['3d_secure']['next_page'];
       commerce_order_status_update($order, 'checkout_' . $next_step);
       drupal_goto('checkout/' . $order->order_number . '/' . $next_step);
     }
@@ -122,39 +122,39 @@ function sagepay_3d_secure_pane_checkout_form($form, &$form_state, $checkout_pan
   // placed these variables in to the $order->data array.
   // nb We already checked for this in the hook_router function above.
 
-    drupal_add_js("window.onload = function() { document.forms['commerce-checkout-form-3d-secure'].submit(); }", 'inline');
+  drupal_add_js("window.onload = function() { document.forms['commerce-checkout-form-3d-secure'].submit(); }", 'inline');
 
-    $form['PaReq'] = array(
-      '#type' => 'hidden',
-      '#default_value' => $order->data['extra_authorisation']['PAReq'],
-    );
+  $form['PaReq'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $order->data['extra_authorisation']['PAReq'],
+  );
 
-    $form['TermUrl'] = array(
-      '#type' => 'hidden',
-      '#default_value' => $order->data['extra_authorisation']['TermUrl'],
-    );
+  $form['TermUrl'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $order->data['extra_authorisation']['TermUrl'],
+  );
 
-    $form['MD'] = array(
-      '#type' => 'hidden',
-      '#default_value' => $order->data['extra_authorisation']['MD'],
-    );
+  $form['MD'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $order->data['extra_authorisation']['MD'],
+  );
 
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => 'Proceed with 3D Secure Authentication',
-    );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Proceed with 3D Secure Authentication',
+  );
 
-    $form['hidden_action'] = array(
-      '#type' => 'hidden',
-      '#value' => $order->data['extra_authorisation']['ACSURL'],
-    );
+  $form['hidden_action'] = array(
+    '#type' => 'hidden',
+    '#value' => $order->data['extra_authorisation']['ACSURL'],
+  );
 
-    $form['iframe_3d_secure'] = array(
-      '#markup' => '<iframe width="410" height="410" scrolling="no" frameborder="0" name ="iframe_3d_secure" id ="iframe_3d_secure" src="' .
+  $form['iframe_3d_secure'] = array(
+    '#markup' => '<iframe width="410" height="410" scrolling="no" frameborder="0" name ="iframe_3d_secure" id ="iframe_3d_secure" src="' .
       url('sagepay_3d_secure/3d_secure_waiting_page')
       . '" />'
-    );
-    return $form;
+  );
+  return $form;
 }
 
 /**
@@ -192,110 +192,109 @@ function sagepay_3d_secure_waiting_page() {
   print('</p></body></html>');
 }
 
-  /**
-   * Process callback response from merchant server
-   */
-  function sagepay_3d_secure_callback($order_number) {
-    // If there's no data in the POST, return a page not found.
-    if (empty($_POST)) drupal_not_found();
-    // Attempt to reload the order
-    $order = commerce_order_load_by_number($order_number);
+/**
+ * Process callback response from merchant server
+ */
+function sagepay_3d_secure_callback($order_number) {
+  // If there's no data in the POST, return a page not found.
+  if (empty($_POST)) drupal_not_found();
+  // Attempt to reload the order
+  $order = commerce_order_load_by_number($order_number);
 
-    // If the order doesn't exist, return a page not found.
-    if (!isset($order)) drupal_not_found();
+  // If the order doesn't exist, return a page not found.
+  if (!isset($order)) drupal_not_found();
 
-    // check the order status - if it's already complete return a page not found
-    $order_status = commerce_order_status_load($order->status);
-    if ($order_status['name'] != 'checkout_3d_secure') drupal_not_found();
+  // check the order status - if it's already complete return a page not found
+  $order_status = commerce_order_status_load($order->status);
+  if ($order_status['name'] != 'checkout_3d_secure') drupal_not_found();
 
-    // check for 3d secure response field
-    if (!isset($_POST['MD']) || !isset($_POST['PaRes'])) {
-      watchdog('commerce_sagepay_direct', 'Invalid data received in 3D Secure response', array(), WATCHDOG_ERROR);
-      drupal_not_found();
-    }
-    $md = $_POST['MD'];
-    $pares = $_POST['PaRes'];
+  // check for 3d secure response field
+  if (!isset($_POST['MD']) || !isset($_POST['PaRes'])) {
+    watchdog('commerce_sagepay_direct', 'Invalid data received in 3D Secure response', array(), WATCHDOG_ERROR);
+    drupal_not_found();
+  }
+  $md = $_POST['MD'];
+  $pares = $_POST['PaRes'];
 
-    // assemble post request to send to SagePay
-    $post = 'MD=' . $md;
-    $post .= '&PaRes=' . $pares;
-    $payment_method_instance = commerce_payment_method_instance_load($order->data['payment_method']);
+  // assemble post request to send to SagePay
+  $post = 'MD=' . $md;
+  $post .= '&PaRes=' . $pares;
+  $payment_method_instance = commerce_payment_method_instance_load($order->data['payment_method']);
 
-    // check the transaction mode we are in to determine which server to send the 3D Secure callback to.
-    switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
-      case SAGEPAY_TXN_MODE_LIVE:
-        $server_url = SAGEPAY_DIRECT_SERVER_3D_SECURE_CALLBACK_LIVE;
-        break;
-      case SAGEPAY_TXN_MODE_TEST:
-        $server_url = SAGEPAY_DIRECT_SERVER_3D_SECURE_CALLBACK_TEST;
-        break;
-      case SAGEPAY_TXN_MODE_SIMULATION:
-        $server_url = SAGEPAY_DIRECT_SERVER_SIMULATION;
-        break;
-      default:
-        $server_url = SAGEPAY_TXN_MODE_SIMULATION;
-    }
-
-    // process the callback
-    $response = _commerce_sagepay_request_post($server_url, $post);
-    // process response
-    $success = commerce_sagepay_process_response($payment_method_instance, $order, $response);
-
-
-    if ($success) {
-      $checkout_pages = commerce_checkout_pages();
-      $next_step =  $checkout_pages['3d_secure']['next_page'];
-      commerce_order_status_update($order, 'checkout_' . $next_step);
-      $redirect = 'checkout/' . $order->order_number . '/' . $next_step;
-    }
-    else $redirect = 'checkout/' . $order->order_number . '/payment';
-
-    sagepay_3d_secure_clear_iframe($redirect);
-
+  // check the transaction mode we are in to determine which server to send the 3D Secure callback to.
+  switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
+    case SAGEPAY_TXN_MODE_LIVE:
+      $server_url = SAGEPAY_DIRECT_SERVER_3D_SECURE_CALLBACK_LIVE;
+      break;
+    case SAGEPAY_TXN_MODE_TEST:
+      $server_url = SAGEPAY_DIRECT_SERVER_3D_SECURE_CALLBACK_TEST;
+      break;
+    case SAGEPAY_TXN_MODE_SIMULATION:
+      $server_url = SAGEPAY_DIRECT_SERVER_SIMULATION;
+      break;
+    default:
+      $server_url = SAGEPAY_TXN_MODE_SIMULATION;
   }
 
-  /**
-   * Reset the page target to the top document and not the iframe.
-   * @param $redirect_url
-   */
-  function sagepay_3d_secure_clear_iframe($redirect_url) {
-      print('<html><head><title></title></head><body onload="document.forms[0].submit();">');
-      print('<form name="3d_secure_callback" method="post" action="' . url($redirect_url) . '" target="_top">');
-      print('<noscript>');
-      print('<input type="submit" value="');
-      print t('Please click here to continue.');
-      print('" />');
-      print('</noscript>');
-      print('</form>');
-      print('</body></html>');
-
-  }
+  // process the callback
+  $response = _commerce_sagepay_request_post($server_url, $post);
+  // process response
+  $success = commerce_sagepay_process_response($payment_method_instance, $order, $response);
 
 
-  /**
-   * Check if an order has a partially completed 3D secure transaction and return it.
-   * @param $tokens
-   * @param $order
-   */
-  function sagepay_3d_secure_load_transaction($tokens, $order){
+  if ($success) {
+    $checkout_pages = commerce_checkout_pages();
+    $next_step = $checkout_pages['3d_secure']['next_page'];
+    commerce_order_status_update($order, 'checkout_' . $next_step);
+    $redirect = 'checkout/' . $order->order_number . '/' . $next_step;
+  } else $redirect = 'checkout/' . $order->order_number . '/payment';
 
-    // There are only two possible status codes - OK or NOTAUTHED.
-    $status_3d_secure = isset($tokens['3DSecureStatus']) ? $tokens['3DSecureStatus'] : '';
+  sagepay_3d_secure_clear_iframe($redirect);
 
-    // If there is no 3D Secure status, we don't need to do anything else.
-    if ($status_3d_secure == '') return NULL;
+}
 
-    // A successful 3D Secure transaction will also have a CAVV value.
-    $cavv_code = isset($tokens['CAVV']) ? $tokens['CAVV'] : '';
+/**
+ * Reset the page target to the top document and not the iframe.
+ * @param $redirect_url
+ */
+function sagepay_3d_secure_clear_iframe($redirect_url) {
+  print('<html><head><title></title></head><body onload="document.forms[0].submit();">');
+  print('<form name="3d_secure_callback" method="post" action="' . url($redirect_url) . '" target="_top">');
+  print('<noscript>');
+  print('<input type="submit" value="');
+  print t('Please click here to continue.');
+  print('" />');
+  print('</noscript>');
+  print('</form>');
+  print('</body></html>');
 
-    // Search for exisiting transaction.
-    $conditions = array('order_id' => $order->order_id, 'remote_status' => SAGEPAY_REMOTE_STATUS_3D_SECURE);
-    $transactions = commerce_payment_transaction_load_multiple(array(), $conditions);
+}
 
-    if (empty($transactions)) return NULL;
 
-    $transaction = array_pop($transactions);
+/**
+ * Check if an order has a partially completed 3D secure transaction and return it.
+ * @param $tokens
+ * @param $order
+ */
+function sagepay_3d_secure_load_transaction($tokens, $order) {
 
-    return $transaction;
+  // There are only two possible status codes - OK or NOTAUTHED.
+  $status_3d_secure = isset($tokens['3DSecureStatus']) ? $tokens['3DSecureStatus'] : '';
 
-  }
+  // If there is no 3D Secure status, we don't need to do anything else.
+  if ($status_3d_secure == '') return NULL;
+
+  // A successful 3D Secure transaction will also have a CAVV value.
+  $cavv_code = isset($tokens['CAVV']) ? $tokens['CAVV'] : '';
+
+  // Search for exisiting transaction.
+  $conditions = array('order_id' => $order->order_id, 'remote_status' => SAGEPAY_REMOTE_STATUS_3D_SECURE);
+  $transactions = commerce_payment_transaction_load_multiple(array(), $conditions);
+
+  if (empty($transactions)) return NULL;
+
+  $transaction = array_pop($transactions);
+
+  return $transaction;
+
+}

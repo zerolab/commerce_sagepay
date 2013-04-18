@@ -1,13 +1,13 @@
 <?php
-  module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_constants');
+module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_constants');
 
-  /**
-   * Implements hook_form_commerce_sagepay_settings_form_alter.
-   * @param $form
-   * @param $form_state
-   * @param $form_id
-   */
-  function sagepay_token_form_commerce_sagepay_settings_form_alter(&$form, &$form_state, $form_id) {
+/**
+ * Implements hook_form_commerce_sagepay_settings_form_alter.
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+ */
+function sagepay_token_form_commerce_sagepay_settings_form_alter(&$form, &$form_state, $form_id) {
   // Add support for Tokens.
   $form['tokens'] = array(
     '#type' => 'fieldset',
@@ -29,12 +29,12 @@
 
 }
 
-  /**
-   * Implements hook_sagepay_order_data_alter().
-   * Adds the create token parameter to the order data.
-   * @param $query
-   */
-  function sagepay_token_sagepay_order_data_alter(&$query) {
+/**
+ * Implements hook_sagepay_order_data_alter().
+ * Adds the create token parameter to the order data.
+ * @param $query
+ */
+function sagepay_token_sagepay_order_data_alter(&$query) {
 
   switch ($query['integration_method']) {
     case SAGEPAY_SERVER :
@@ -47,11 +47,11 @@
 
 }
 
-  /**
-   * Implements hook_commerce_payment_method_info_alter().
-   * Adds card on file support to direct payment method.
-   * @param $payment_methods
-   */
+/**
+ * Implements hook_commerce_payment_method_info_alter().
+ * Adds card on file support to direct payment method.
+ * @param $payment_methods
+ */
 function sagepay_token_commerce_payment_method_info_alter(&$payment_methods) {
   if (array_key_exists('commerce_sagepay_direct', $payment_methods)) {
     $payment_methods['commerce_sagepay_direct']['cardonfile'] = array(
@@ -62,91 +62,91 @@ function sagepay_token_commerce_payment_method_info_alter(&$payment_methods) {
 
 }
 
-  /**
-   * Implement suport for Commerce Card on File
-   **/
-  function sagepay_token_commerce_payment_transaction_presave($transaction) {
+/**
+ * Implement suport for Commerce Card on File
+ **/
+function sagepay_token_commerce_payment_transaction_presave($transaction) {
 
-    // Check if transaction payload contains a token
-    if (!isset($transaction->payload['Token'])) {
+  // Check if transaction payload contains a token
+  if (!isset($transaction->payload['Token'])) {
+    return FALSE;
+  }
+
+  if (!isset($transaction->payload['cardonfile_store']) || $transaction->payload['cardonfile_store'] == 0) return FALSE;
+
+  global $user;
+
+  $card_data = array(
+    'uid' => $user->uid,
+    'payment_method' => $transaction->payment_method,
+    'instance_id' => $transaction->instance_id,
+    'remote_id' => $transaction->payload['Token'],
+    'card_type' => $transaction->payload['CardType'],
+    'card_number' => $transaction->payload['Last4Digits'],
+    'card_exp_month' => $transaction->payload['ExpMonth'],
+    'card_exp_year' => $transaction->payload['ExpYear'],
+    'status' => '1',
+  );
+  commerce_cardonfile_data_save($card_data);
+  return TRUE;
+}
+
+/**
+ * Implements hook_cardonfile_update.
+ * @param $form
+ * @param $form_state
+ * @param $payment_method
+ * @param $card_data
+ * @return bool
+ */
+function sagepay_token_cardonfile_update($form, $form_state, $payment_method, $card_data) {
+  return TRUE;
+}
+
+/**
+ * Implements hook_cardonfile_delete.
+ * @param $form
+ * @param $form_state
+ * @param $payment_method
+ * @param $card_data
+ * @return bool
+ */
+function sagepay_token_cardonfile_delete($form, $form_state, $payment_method, $card_data) {
+  // @todo This doesn't work at the moment. SagePay is rejecting the request although it seems valid.
+  watchdog('sagepay', 'received request to remove token');
+
+  $query = array();
+  $query['VPSProtocol'] = SAGEPAY_PROTOCOL;
+  $query['TxType'] = 'REMOVETOKEN';
+  $query['Vendor'] = variable_get(SAGEPAY_SETTING_VENDOR_NAME);
+  $query['Token'] = $card_data['remote_id'];
+
+  switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
+    case SAGEPAY_TXN_MODE_LIVE:
+      $url = SAGEPAY_TOKEN_REMOVE_LIVE;
+      break;
+    case SAGEPAY_TXN_MODE_TEST:
+      $url = SAGEPAY_TOKEN_REMOVE_TEST;
+      break;
+  }
+  $response = _commerce_sagepay_request_post($url, $query);
+
+  switch ($response['Status']) {
+    case 'OK':
+      return TRUE;
+    case 'MALFORMED':
+    case 'INVALID' :
+      drupal_set_message(t('Error removing saved card. %detail', array('%detail' => $response['StatusDetail'])));
       return FALSE;
-    }
-
-    if (!isset($transaction->payload['cardonfile_store']) || $transaction->payload['cardonfile_store'] == 0) return FALSE;
-
-    global $user;
-
-    $card_data = array(
-        'uid' => $user->uid,
-        'payment_method' => $transaction->payment_method,
-        'instance_id' => $transaction->instance_id,
-        'remote_id' => $transaction->payload['Token'],
-        'card_type' => $transaction->payload['CardType'],
-        'card_number' => $transaction->payload['Last4Digits'],
-        'card_exp_month' => $transaction->payload['ExpMonth'],
-        'card_exp_year' => $transaction->payload['ExpYear'],
-        'status' => '1',
-      );
-    commerce_cardonfile_data_save($card_data);
-    return TRUE;
   }
 
-  /**
-   * Implements hook_cardonfile_update.
-   * @param $form
-   * @param $form_state
-   * @param $payment_method
-   * @param $card_data
-   * @return bool
-   */
-  function sagepay_token_cardonfile_update($form, $form_state, $payment_method, $card_data) {
-    return TRUE;
-  }
+  return TRUE;
 
-  /**
-   * Implements hook_cardonfile_delete.
-   * @param $form
-   * @param $form_state
-   * @param $payment_method
-   * @param $card_data
-   * @return bool
-   */
-  function sagepay_token_cardonfile_delete($form, $form_state, $payment_method, $card_data) {
-    // @todo This doesn't work at the moment. SagePay is rejecting the request although it seems valid.
-    watchdog('sagepay', 'received request to remove token');
+}
 
-    $query = array();
-    $query['VPSProtocol'] = SAGEPAY_PROTOCOL;
-    $query['TxType'] = 'REMOVETOKEN';
-    $query['Vendor'] = variable_get(SAGEPAY_SETTING_VENDOR_NAME);
-    $query['Token'] = $card_data['remote_id'];
+function sagepay_token_cardonfile_charge() {
+  //@todo implement
 
-    switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
-      case SAGEPAY_TXN_MODE_LIVE:
-        $url = SAGEPAY_TOKEN_REMOVE_LIVE;
-        break;
-      case SAGEPAY_TXN_MODE_TEST:
-        $url = SAGEPAY_TOKEN_REMOVE_TEST;
-        break;
-    }
-    $response = _commerce_sagepay_request_post($url, $query);
-
-    switch($response['Status']){
-      case 'OK':
-        return TRUE;
-      case 'MALFORMED':
-      case 'INVALID' :
-        drupal_set_message(t('Error removing saved card. %detail', array('%detail' => $response['StatusDetail'])));
-        return FALSE;
-    }
-
-    return TRUE;
-
-  }
-
-  function sagepay_token_cardonfile_charge() {
-    //@todo implement
-
-  }
+}
 
 
