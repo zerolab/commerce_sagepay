@@ -247,10 +247,7 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
       $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
       $transaction = NULL;
 
-      /**
-       * If 3D secure is in use, we may have to load a partially completed transaction
-       * at this point in order to complete it.
-       */
+      // If 3D secure is in use, we may have to load a partial transaction.
       if (module_exists('sagepay_3d_secure')) {
         $transaction = sagepay_3d_secure_load_transaction($tokens, $order);
       }
@@ -300,7 +297,7 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
       break;
 
     default:
-      // If the status code is anything other than those above, something has gone wrong so log an error and fail.
+      // Something has gone wrong so log an error and fail.
       watchdog('commerce_sagepay', 'Unrecognised Status response from SagePay for order %order_id (%response_code)', array('%order_id' => $order_id, '%response_code' => $tokens['Status']), WATCHDOG_ERROR);
       drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
       return FALSE;
@@ -340,8 +337,13 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   if (module_exists('sagepay_token')) {
     if (isset($pane_values) && array_key_exists('cardonfile', $pane_values) && $pane_values['cardonfile'] != 'new') {
       $saved_card_data = commerce_cardonfile_data_load($pane_values['cardonfile']);
-      if (!commerce_cardonfile_data_access($saved_card_data)) $saved_card_data = NULL;
-      if (isset($saved_card_data)) $integration_method = SAGEPAY_TOKEN;
+      if (!commerce_cardonfile_data_access($saved_card_data))
+      {
+        $saved_card_data = NULL;
+      }
+      if (isset($saved_card_data)) {
+        $integration_method = SAGEPAY_TOKEN;
+      }
     }
   }
 
@@ -404,7 +406,6 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     'VPSProtocol'        => SAGEPAY_PROTOCOL,
     'Vendor'             => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
     'VendorTxCode'       => $vendor_tx_code,
-//      'TxType' => $tx_type,
     'Amount'             => $order_amount,
     'Currency'           => $total['currency_code'],
     'Description'        => variable_get(SAGEPAY_SETTING_ORDER_DESCRIPTION),
@@ -420,7 +421,6 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     'BillingCity'        => $billing_address['locality'],
     'BillingPostcode'    => $billing_address['postal_code'],
     'BillingCountry'     => $billing_address['country'],
-    // 'BillingPhone' => $billing_address['postal_code'],
     'DeliverySurname'    => $billing_name['last_name'],
     'DeliveryFirstnames' => $billing_name['first_name'],
     'DeliveryAddress1'   => $billing_address['thoroughfare'],
@@ -428,13 +428,8 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     'DeliveryCity'       => $billing_address['locality'],
     'DeliveryPostcode'   => $billing_address['postal_code'],
     'DeliveryCountry'    => $billing_address['country'],
-    // 'DeliveryState' => $billing_address[''],
-    // 'DeliveryPhone' => $billing_address[''],
-    // 'AllowGiftAid' => '',
     'ApplyAVSCV2'        => variable_get(SAGEPAY_SETTING_APPLY_AVS_CV2),
     'Apply3DSecure'      => variable_get(SAGEPAY_SETTING_APPLY_3D_SECURE),
-    // 'BillingAgreement' => '',
-
   );
 
 
@@ -477,12 +472,13 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       break;
 
     case SAGEPAY_TOKEN:
-//        $query['TxType'] = 'TOKEN';
       $query['TxType'] = $tx_type;
       $query['Token'] = $saved_card_data['remote_id'];
-      $query['StoreToken'] = 1; //@todo decide when to set this to zero - on failed transaction probably.
-      $query['ApplyAVSCV2'] = 2; // Disable CV2 check as we do not store this data in Card on File
-    // option to add CV2 here, but card on file doesn't store it.
+      $query['StoreToken'] = 1;
+
+      // Disable CV2 check as we do not store this data in Card on File.
+      $query['ApplyAVSCV2'] = 2;
+      // Option to add CV2 here, but card on file doesn't store it.
   }
 
 
@@ -517,15 +513,13 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     $query['DeliveryCity'] = $delivery_address['locality'];
     $query['DeliveryPostcode'] = $delivery_address['postal_code'];
     $query['DeliveryCountry'] = $delivery_address['country'];
-    // 'DeliveryPhone' = $delivery_address[''];
 
     if ($delivery_address['country'] == 'US' && $delivery_address['administrative_area']) {
       $query['DeliveryState'] = $delivery_address['administrative_area'];
     }
   }
 
-  // Call hook to allow other modules to modify order data before it is
-
+  // Call hook to allow other modules to modify order data before it is.
   $query['integration_method'] = $integration_method;
   drupal_alter('sagepay_order_data', $query, $order);
   unset($query['integration_method']);
@@ -541,7 +535,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   }
   $query_string = substr($query_string, 0, strlen($query_string) - 1);
 
-  // Encrypt the order details using base64 and the secret key from the settings.
+  // Encrypt order details using base64 and the secret key from the settings.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
     case SAGEPAY_TXN_MODE_LIVE:
       $encoded_string = _commerce_sagepay_encrypt_and_encode($query_string, variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY));
@@ -561,10 +555,10 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
  *
  * Converts a string of tokens into an array.
  * @param string $tokenizedstring
- *  The string to be converted.
+ *    The string to be converted.
  *
  * @return array
- *  An array of tokens.
+ *    An array of tokens.
  */
 function _commerce_sagepay_form_get_tokens($tokenizedstring) {
 
@@ -631,7 +625,6 @@ function _commerce_sagepay_form_get_tokens($tokenizedstring) {
   return $output;
 }
 
-
 /**
  * Send a POST request to SagePay and return the response as an array.
  *
@@ -643,58 +636,33 @@ function _commerce_sagepay_form_get_tokens($tokenizedstring) {
  *  The response from Sage Pay.
  */
 function _commerce_sagepay_request_post($url, $data) {
-  // Set a one-minute timeout for this script
   set_time_limit(60);
-
-  // Initialise output variable
   $output = array();
-
-  // Open the cURL session
-
   $curl_session = curl_init();
 
-  // Set the URL
   curl_setopt($curl_session, CURLOPT_URL, $url);
-  // No headers, please
   curl_setopt($curl_session, CURLOPT_HEADER, 0);
-  // It's a POST request
   curl_setopt($curl_session, CURLOPT_POST, 1);
-  // Set the fields for the POST
   curl_setopt($curl_session, CURLOPT_POSTFIELDS, $data);
-  // Return it direct, don't print it out
   curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, 1);
-  // This connection will timeout in 30 seconds
   curl_setopt($curl_session, CURLOPT_TIMEOUT, 30);
-  //The next two lines must be present for the kit to work with newer version of cURL
-  //You should remove them if you have any problems in earlier versions of cURL
   curl_setopt($curl_session, CURLOPT_SSL_VERIFYPEER, FALSE);
   curl_setopt($curl_session, CURLOPT_SSL_VERIFYHOST, 1);
 
-  //Send the request and store the result in an array
-
   $rawresponse = curl_exec($curl_session);
-  //Store the raw response for later as it's useful to see for integration and understanding
-
-  //Split response into name=value pairs
   $response = explode(chr(10), $rawresponse);
-  // Check that a connection was made
+
   if (curl_error($curl_session)) {
-    // If it wasn't...
     $output['Status'] = "FAIL";
     $output['StatusDetail'] = curl_error($curl_session);
   }
 
-  // Close the cURL session
   curl_close($curl_session);
 
-  // Tokenise the response
   for ($i = 0; $i < count($response); $i++) {
-    // Find position of first "=" character
     $split_at = strpos($response[$i], "=");
-    // Create an associative (hash) array with key/value pairs ('trim' strips excess whitespace)
     $output[trim(substr($response[$i], 0, $split_at))] = trim(substr($response[$i], ($split_at + 1)));
-  } // END for ($i=0; $i<count($response); $i++)
+  }
 
-  // Return the output
   return $output;
 }

@@ -6,6 +6,7 @@
  *
  * Form integration functions.
  */
+
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_utils');
 
@@ -33,7 +34,6 @@ function commerce_sagepay_form_redirect_form($form, &$form_state, $order,
 
   $settings = array(
     // Return to the payment redirect on failure/cancellation.
-    // so we can handle it and give user feedback
     'cancel_return'  => url('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key'], array('absolute' => TRUE)),
 
     // Return to the payment redirect page for processing successful payments.
@@ -73,7 +73,6 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
   // Split the vendor code to get rid of the random number that was added.
   $arrtmp = explode('_', $tokens['VendorTxCode']);
   $order_id = $arrtmp[0];
-
 
   // Validate the returned decrypted data.
   if ($order_id != $order->order_id) {
@@ -139,7 +138,7 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
       break;
 
     default:
-      // If the status code is anything other than those above, something has gone wrong so log an error and fail.
+      // If the status code is anything other than those above, log an error.
       watchdog('commerce_sagepay', 'Unrecognised Status response from SagePay for order %order_id (%response_code)', array('%order_id' => $order_id, '%response_code' => $tokens['Status']), WATCHDOG_ERROR);
       return FALSE;
 
@@ -148,7 +147,7 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
   // Validation successful.
   // Create a transaction and associate it with the order.
   $charge = array();
-  $charge['amount'] = $tokens['Amount'] * 100; // convert back to commerce int
+  $charge['amount'] = $tokens['Amount'] * 100;
   $charge['currency_code'] = $order->commerce_order_total['und'][0]['currency_code'];
 
   commerce_sagepay_transaction($payment_method, $order, $charge, $tokens, $tokens['Status'], $remote_status);

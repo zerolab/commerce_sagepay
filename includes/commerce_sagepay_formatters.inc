@@ -10,9 +10,10 @@
  * Convert a Commerce Order object to XML using the V3 protocol format.
  *
  * @param commerce_order $order
- *    The order to convert to XML.
+ *      The order to convert to XML.
+ *
  * @return DOMDocument
- *    The XML document.
+ *      The XML document.
  */
 function _commerce_sagepay_cart_to_xml($order) {
 
@@ -20,7 +21,6 @@ function _commerce_sagepay_cart_to_xml($order) {
 
   // Define a new XML document object to store the order data.
   $xml_doc = new DOMDocument();
-
 
   $root = $xml_doc->appendChild(
     $xml_doc->createElement("basket")
@@ -42,7 +42,9 @@ function _commerce_sagepay_cart_to_xml($order) {
 
     // Check if this is a delivery line - we'll need this later.
     $line_item_type = $line_item->type;
-    if ($line_item_type == 'shipping') $delivery_line = $line_item_wrapper;
+    if ($line_item_type == 'shipping') {
+      $delivery_line = $line_item_wrapper;
+    }
 
     // Create an XML element for each order line.
     $linexml = $root->appendChild(
@@ -89,12 +91,12 @@ function _commerce_sagepay_cart_to_xml($order) {
       $xml_doc->createElement('totalGrossAmount', $line_total)
     );
 
-
     // Check if line has an attached shipping profile.
     // Otherwise use the details from the order shipping profile.
     if (isset($line_item_wrapper->commerce_customer_shipping)) {
       $shipping_profile = $line_item_wrapper->commerce_customer_shipping;
-    } else if (isset($order_wrapper->commerce_customer_shipping)) {
+    }
+    elseif (isset($order_wrapper->commerce_customer_shipping)) {
       $shipping_profile = $order_wrapper->commerce_customer_shipping;
     }
 
@@ -166,7 +168,6 @@ function _commerce_sagepay_cart_to_xml($order) {
 
 
   // Add the delivery totals if we found a delivery line earlier.
-
   if (isset($delivery_line)) {
     // Step through components to look for tax item
     $delivery_tax = 0;
@@ -206,9 +207,8 @@ function _commerce_sagepay_cart_to_xml($order) {
   );
 
   /*
-  * The remainder of this specification is industry specific (eg airlines / hotels)
-  * Adding a hook here so the XML can be enhanced when industry specific sites have this information
-  * to add. No point in creating a generic version here as we don't know what the fields used will be called.
+  * The remainder of this specification is industry specific.
+  * Adding a hook here so the XML can be enhanced.
   */
   drupal_alter('commerce_sagepay_basket_xml', $xml_doc);
 
@@ -225,6 +225,7 @@ function _commerce_sagepay_cart_to_xml($order) {
  *
  * @param commerce_order $order
  *    the order to be converted.
+ *
  * @return string
  *    the order as a string.
  */
@@ -253,16 +254,16 @@ function _commerce_sagepay_cart_to_string($order) {
  * Convert a single order line into a string in the format requried by SagePay.
  *
  * @param int $line_item_id
- *    The id of the line item to be converted.
+ *     The id of the line item to be converted.
+ *
  * @return string
- *    The line item as a string.
+ *     The line item as a string.
  */
 function _commerce_sagepay_line_item_to_string($line_item_id) {
 
   // Load the line item ID.
   $line_item = commerce_line_item_load($line_item_id);
   $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
-
 
   $description = $line_item_wrapper->line_item_label->value();
 

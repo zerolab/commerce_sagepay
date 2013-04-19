@@ -10,7 +10,7 @@ module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_utils'
 
 
 /**
- * Implements hook_redirect_form.
+ * Implements hook_redirect_form().
  */
 function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $payment_method) {
   // Return an error if the enabling action's settings haven't been configured.

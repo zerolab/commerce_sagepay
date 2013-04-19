@@ -120,9 +120,11 @@ function commerce_sagepay_repeat_deferred_form_submit($form, &$form_state) {
     case SAGEPAY_TXN_MODE_LIVE:
       $url = SAGEPAY_SHARED_REPEAT_TRANSACTION_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $url = SAGEPAY_SHARED_REPEAT_TRANSACTION_TEST;
       break;
+
     case SAGEPAY_TXN_MODE_SIMULATION:
       $url = SAGEPAY_SHARED_REPEAT_TRANSACTION_SIMULATION;
       break;
@@ -166,7 +168,6 @@ function commerce_sagepay_repeat_deferred_form_submit($form, &$form_state) {
       '@status'       => $response['Status'],
       '@statusdetail' => $response['StatusDetail'],
     );
-
 
   commerce_payment_transaction_save($repeat_transaction);
   $form_state['redirect'] = 'admin/commerce/orders/' . $form_state['order']->order_id . '/payment';

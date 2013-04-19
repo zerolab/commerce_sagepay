@@ -115,7 +115,7 @@ function commerce_sagepay_refund_form_submit($form, &$form_state) {
     'RelatedTxAuthNo'     => $transaction->payload['TxAuthNo'],
   );
 
-  // Determine the correct url to sent the request to based on the transaction mode.
+  // Determine the url to sent the request to based on the transaction mode.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
     case SAGEPAY_TXN_MODE_LIVE:
       $url = SAGEPAY_SHARED_REFUND_TRANSACTION_LIVE;
