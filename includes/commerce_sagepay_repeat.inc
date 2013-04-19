@@ -164,7 +164,6 @@ function commerce_sagepay_repeat_form_submit($form, &$form_state) {
       '@statusdetail' => $response['StatusDetail'],
     );
 
-
   commerce_payment_transaction_save($repeat_transaction);
   $form_state['redirect'] = 'admin/commerce/orders/' . $form_state['order']->order_id . '/payment';
 }

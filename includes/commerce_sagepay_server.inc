@@ -5,6 +5,7 @@
  * commerce_sagepay_server.inc
  * Functions for Server integration method.
  */
+
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_utils');
 
@@ -55,24 +56,26 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
   foreach ($data as $name => $value) {
     $post .= urlencode($name) . '=' . urlencode($value) . '&';
   }
-  // chop off the last &.
+  // Chop off the last &.
   $post = substr($post, 0, -1);
 
-  // determine the correct url based on the transaction mode.
+  // Determine the correct url based on the transaction mode.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
     case SAGEPAY_TXN_MODE_LIVE:
       $server_url = SAGEPAY_SERVER_SERVER_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $server_url = SAGEPAY_SERVER_SERVER_TEST;
       break;
+
     case SAGEPAY_TXN_MODE_SIMULATION:
       $server_url = SAGEPAY_SERVER_SERVER_SIMULATION;
       break;
   }
+
   // Call SagePay to get payment form that can then be included in an iFrame.
   // Response as per Appendix A2 of the SagePay Server Integration Guidelines.
-
   $response = _commerce_sagepay_request_post($server_url, $post);
 
   // Create a new payment transaction and setup the amount.
@@ -85,7 +88,6 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
   $transaction->payload = $response;
   $transaction->payload['VendorTxCode'] = $data['VendorTxCode'];
 
-
   // add the user id to the transaction
   $transaction->payload['merchantCustomerId'] = $order->uid;
 
@@ -96,8 +98,8 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
     $transaction->message = 'No valid response from Sagepay';
     commerce_payment_transaction_save($transaction);
     watchdog('custom_sagepay_server', 'No Status code received in SagePay callback.', array(), WATCHDOG_ERROR);
-//      drupal_goto('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key']);
   }
+
   $transaction_status = explode(" ", $response["Status"]);
   switch ($transaction_status[0]) {
     case 'OK':
@@ -120,7 +122,8 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
         );
 
         return $form;
-      } else {
+      }
+      else {
         header("Location: " . $response["NextURL"]);
       }
 
@@ -132,7 +135,6 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
       $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
       $transaction->message = 'FAIL Response from Sagepay';
       commerce_payment_transaction_save($transaction);
-//        watchdog('commerce_sagepay', 'FAIL Status response from SagePay for order %order_id', array('%order_id' => $order->order_id), WATCHDOG_ERROR);
       drupal_goto('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key']);
       break;
 
@@ -146,7 +148,7 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
       drupal_goto('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key']);
       break;
 
-    default :
+    default:
       $transaction->payload['vps_status'] = 'UNKNOWN';
       $transaction->remote_status = SAGEPAY_REMOTE_STATUS_UNKNOWN;
       $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
@@ -161,9 +163,12 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
 
 
 /**
- * Validate payment by checking status of last transaction
- * @param $order
- * @param $payment_method
+ * Validate payment by checking status of last transaction.
+ *
+ * @param commerce_order $order
+ *  The Commerce Order.
+ * @param array $payment_method
+ *  The payment method.
  * @return bool
  */
 function commerce_sagepay_server_redirect_form_validate($order, $payment_method) {
@@ -178,7 +183,6 @@ function commerce_sagepay_server_redirect_form_validate($order, $payment_method)
       case 'OK':
         $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
         $return = TRUE;
-        //drupal_set_message(t('Transaction was processed succesfully'));
         break;
 
       case 'TAMPER':
@@ -216,13 +220,14 @@ function commerce_sagepay_server_redirect_form_validate($order, $payment_method)
  * Displayed when there is a load delay or if the user has Javascript disabled.
  */
 function commerce_sagepay_server_waiting_page() {
-  print('<html><head><title></title></head><body><p>');
+  print ('<html><head><title></title></head><body><p>');
   print t('Please wait to be redirected to the payment page.');
-  print('</p></body></html>');
+  print ('</p></body></html>');
 }
 
 /**
  * Process the callback that is sent by SagePay Server.
+ *
  * @param string $order_id
  *    The order id.
  * @param $key
@@ -317,7 +322,8 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
           $notification_status = 'OK';
           $notification_status_detail = t('Transaction notification received.');
 
-        } else {
+        }
+        else {
           $transaction->payload['vps_status'] = 'TAMPER';
           $transaction->remote_status = 'TAMPER';
           $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
@@ -343,5 +349,3 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
   exit;
 
 }
-
-

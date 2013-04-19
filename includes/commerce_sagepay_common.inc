@@ -347,7 +347,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   }
 
   // Add a random number to the transaction ID so that the order can be
-  //  resubmitted to SagePage in the event the user clicks back to modify the
+  // resubmitted to SagePage in the event the user clicks back to modify the
   // order before completing. (otherwise we SagePay rejects this
   // as a duplicate).
   $random_number = rand(0, 32000) * rand(0, 32000);
@@ -357,7 +357,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   $order->data['VendorTxId'] = $vendor_tx_code;
   commerce_order_save($order);
 
-  // convert commerce int to decimal
+  // Convert commerce int to decimal.
   $order_amount = number_format(commerce_currency_amount_to_decimal($total['amount'], $total['currency_code']), 2);
 
   // Check if we need to encode cart.
@@ -366,7 +366,8 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   if ($cart_setting == '1') {
     module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_formatters');
     $encoded_cart = _commerce_sagepay_cart_to_string($order);
-  } elseif ($cart_setting == '2') {
+  }
+  elseif ($cart_setting == '2') {
     module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_formatters');
     $encoded_cart = _commerce_sagepay_cart_to_xml($order)->saveXML();
   }
@@ -392,6 +393,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     case COMMERCE_CREDIT_AUTH_ONLY:
       $tx_type = 'AUTHENTICATE';
       break;
+
     default:
 
       // Set to deferred if there is no setting for the payment gateway.
@@ -458,10 +460,11 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       $query['CV2'] = $pane_values['credit_card']['code'];
       $query['CardType'] = $pane_values['credit_card']['type'];
 
-      // Add 3D Secure flag only if the 3d Secure module is enabled for DIRECT
+      // Add 3D Secure flag only if the 3d Secure module is enabled for DIRECT.
       if (module_exists('sagepay_3d_secure')) {
         $query['Apply3DSecure'] = variable_get(SAGEPAY_SETTING_APPLY_3D_SECURE);
-      } else {
+      }
+      else {
         $query['Apply3DSecure'] = 2;
       }
       break;
@@ -475,7 +478,6 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       $query['ApplyAVSCV2'] = 2;
       // Option to add CV2 here, but card on file doesn't store it.
   }
-
 
   switch ($cart_setting) {
     case 1:
@@ -520,8 +522,10 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   unset($query['integration_method']);
 
   // For Server mode, we can return the Array now before encryption.
-  if (in_array($integration_method, array(SAGEPAY_SERVER, SAGEPAY_DIRECT, SAGEPAY_TOKEN))) return $query;
-
+  if (in_array($integration_method, array(SAGEPAY_SERVER, SAGEPAY_DIRECT,
+    SAGEPAY_TOKEN))) {
+    return $query;
+  }
 
   $keys = array_keys($query);
   $query_string = '';
@@ -539,7 +543,6 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     default :
       $encoded_string = _commerce_sagepay_encrypt_and_encode($query_string, variable_get(SAGEPAY_SETTING_TEST_ENCRYPTION_KEY));
   }
-
 
   return $encoded_string;
 }

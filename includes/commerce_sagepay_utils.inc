@@ -43,7 +43,9 @@ function _commerce_sagepay_populate_card_names($cards) {
   $card_array = array();
   $names = _commerce_sagepay_all_card_names();
   foreach (array_values($cards) as $c) {
-    if ($c != '0') $card_array[$c] = $names[$c];
+    if ($c != '0') {
+      $card_array[$c] = $names[$c];
+    }
   }
 
   return $card_array;
@@ -62,6 +64,7 @@ function _commerce_sagepay_populate_card_names($cards) {
  *    The first name only (eg Richard).
  * @param string $last_name
  *    The last name only (eg Jones).
+ *
  * @return array
  *   An array of the name compoent parts.
  */
@@ -286,7 +289,7 @@ function _commerce_sagepay_array_to_post($data) {
  *
  * @param string $text
  *    The string to clean.
- * @param $type
+ * @param string $type
  *   The type of string being cleaned.
  * @return string
  *   The clean string.

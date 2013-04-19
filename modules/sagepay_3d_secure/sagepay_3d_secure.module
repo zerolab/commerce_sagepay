@@ -153,7 +153,7 @@ function sagepay_3d_secure_pane_checkout_form($form, &$form_state, $checkout_pan
   $form['iframe_3d_secure'] = array(
     '#markup' => '<iframe width="410" height="410" scrolling="no" frameborder="0" name ="iframe_3d_secure" id ="iframe_3d_secure" src="' .
       url('sagepay_3d_secure/3d_secure_waiting_page')
-      . '" />'
+      . '" />',
   );
   return $form;
 }
@@ -164,7 +164,6 @@ function sagepay_3d_secure_pane_checkout_form($form, &$form_state, $checkout_pan
 function sagepay_3d_secure_form_alter(&$form, &$form_state, $form_id) {
   // Modify the checkout form so we can change the action to redirect offsite.
   // Also rewrite the fields so they are at the top level of the form array.
-
   if ($form_id == 'commerce_checkout_form_3d_secure') {
     $form['#action'] = $form['3d_secure']['hidden_action']['#value'];
     $form['#attributes']['target'] = 'iframe_3d_secure';
@@ -209,7 +208,9 @@ function sagepay_3d_secure_callback($order_number) {
 
   // Check the order status - if it's already complete return a page not found.
   $order_status = commerce_order_status_load($order->status);
-  if ($order_status['name'] != 'checkout_3d_secure') drupal_not_found();
+  if ($order_status['name'] != 'checkout_3d_secure') {
+    drupal_not_found();
+  }
 
   // Check for 3d secure response field.
   if (!isset($_POST['MD']) || !isset($_POST['PaRes'])) {
@@ -254,7 +255,10 @@ function sagepay_3d_secure_callback($order_number) {
     $next_step = $checkout_pages['3d_secure']['next_page'];
     commerce_order_status_update($order, 'checkout_' . $next_step);
     $redirect = 'checkout/' . $order->order_number . '/' . $next_step;
-  } else $redirect = 'checkout/' . $order->order_number . '/payment';
+  }
+  else {
+    $redirect = 'checkout/' . $order->order_number . '/payment';
+  }
 
   sagepay_3d_secure_clear_iframe($redirect);
 
@@ -264,6 +268,7 @@ function sagepay_3d_secure_callback($order_number) {
  * Reset the page target to the top document and not the iframe.
  *
  * @param string $redirect_url
+ *  The url to redirect to after clearing the iframe.
  */
 function sagepay_3d_secure_clear_iframe($redirect_url) {
   print ('<html><head><title></title></head><body onload="document.forms[0].submit();">');

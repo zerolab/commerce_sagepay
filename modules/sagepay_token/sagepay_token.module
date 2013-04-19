@@ -112,7 +112,7 @@ function sagepay_token_cardonfile_update($form, $form_state, $payment_method, $c
  * Implements hook_cardonfile_delete().
  */
 function sagepay_token_cardonfile_delete($form, $form_state, $payment_method, $card_data) {
-  // @todo This doesn't work at the moment. SagePay is rejecting the request although it seems valid.
+  //@todo This doesn't work at the moment. SagePay is rejecting the request although it seems valid.
   watchdog('sagepay', 'received request to remove token');
 
   $query = array();
@@ -148,5 +148,3 @@ function sagepay_token_cardonfile_charge() {
   //@todo implement
 
 }
-
-

@@ -166,12 +166,11 @@ function _commerce_sagepay_cart_to_xml($order) {
 
   }
 
-
   // Add the delivery totals if we found a delivery line earlier.
   if (isset($delivery_line)) {
-    // Step through components to look for tax item
+    // Step through components to look for tax item.
     $delivery_tax = 0;
-    // check if there is a tax component.
+    // Check if there is a tax component.
     $delivery_total = $delivery_line->commerce_total->value();
 
     if (isset($delivery_total['data']['components'])) {
@@ -245,7 +244,7 @@ function _commerce_sagepay_cart_to_string($order) {
     $order_string .= _commerce_sagepay_line_item_to_string($order_lines[$line]['line_item_id']);
   }
 
-  // Trim off the last excess colon
+  // Trim off the last excess colon.
   $order_string = substr($order_string, 0, strlen($order_string) - 1);
 
   return $order_string;
