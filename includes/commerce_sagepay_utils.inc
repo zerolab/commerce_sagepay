@@ -37,6 +37,7 @@ function _commerce_sagepay_all_card_types() {
  *
  * @param array $cards
  *    Available card codes.
+ *
  * @return array
  *    Array of card codes and names.
  */
@@ -86,7 +87,7 @@ function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_n
       $first_name .= ' ';
     }
 
-    // Allow for a situation where only one name was entered on the name line
+    // Allow for a situation where only one name was entered on the name line.
     if ($first_name == '') {
       $first_name = 'not set';
     }
@@ -105,13 +106,13 @@ function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_n
  *    The unencrypyted string.
  * @param string $key
  *    The encryption key.
+ *
  * @return string
  *    The encoded string.
  */
 function _commerce_sagepay_encrypt_and_encode($string, $key) {
 
   // AES encryption, CBC blocking with PKCS5 padding then HEX encoding.
-
   // Add PKCS5 padding to the text to be encypted.
   $string = _commerce_sagepay_addPKCS5Padding($string);
 
@@ -130,14 +131,13 @@ function _commerce_sagepay_encrypt_and_encode($string, $key) {
  *    The encrypted String.
  * @param string $str_encryption_password
  *   The encyption password used to encrypt the string.
+ *
  * @return string
  *   The unecrypted string.
  */
 function _commerce_sagepay_decode_and_decrypt($str_in, $str_encryption_password) {
 
-
   // HEX decoding then AES decryption, CBC blocking with PKCS5 padding.
-
   // Use initialization vector (IV) set from $str_encryption_password.
   $str_iv = $str_encryption_password;
 
@@ -157,6 +157,7 @@ function _commerce_sagepay_decode_and_decrypt($str_in, $str_encryption_password)
  *
  * @param string $decrypted
  *    The decrypted string.
+ *
  * @return string
  *   String without the padding.
  */
@@ -194,6 +195,7 @@ function _commerce_sagepay_addPKCS5Padding($input) {
  *
  * @param string $scrambled
  *    The encoded string.
+ *
  * @return string
  *   The decoded string.
  */
@@ -252,7 +254,8 @@ function _commerce_sagepay_validate_input($text, $max_length, $type = SAGEPAY_VA
 /**
  * Substitute Test card data.
  *
- * For testing purposes, SagePay needs one of a set of test card numbers and the following test data
+ * For testing purposes, SagePay needs one of a set of test card numbers and
+ * the following test data:
  * Billing Address1 = '88'
  * Billing Postcode = '412'
  * Expiry date = Sometime in the future
@@ -288,7 +291,7 @@ function _commerce_sagepay_array_to_post($data) {
     $post .= urlencode($name) . '=' . urlencode($value) . '&';
   }
 
-  // chop off the last &
+  // Chop off the last &.
   $post = substr($post, 0, -1);
 
   return $post;

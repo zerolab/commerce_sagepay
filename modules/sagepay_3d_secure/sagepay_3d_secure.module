@@ -181,10 +181,10 @@ function sagepay_3d_secure_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
- *  A temporary page that is displayed until the 3d secure form is submitted.
+ * A temporary page that is displayed until the 3d secure form is submitted.
  *
- *  Since the form is submitted via a javascript call, this page is only visible
- *  to those that have JS turned off.
+ * Since the form is submitted via a javascript call, this page is only visible
+ * to those that have JS turned off.
  */
 function sagepay_3d_secure_waiting_page() {
   print ('<html><head><title></title></head><body><p>');
@@ -203,7 +203,7 @@ function sagepay_3d_secure_callback($order_number) {
   if (empty($_POST)) {
     drupal_not_found();
   }
-  // Attempt to reload the order
+  // Attempt to reload the order.
   $order = commerce_order_load_by_number($order_number);
 
   // If the order doesn't exist, return a page not found.
