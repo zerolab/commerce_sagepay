@@ -4,6 +4,20 @@
  * Common utility functions shared by all SagePay modules.
  */
 
+/**
+ * Sets up a new form for the submit to Sage Pay button (off site redirect).
+ *
+ * @param array $form
+ *  The form array.
+ * @param array $form_state
+ *  Currency values and form state.
+ * @param commerce_order $order
+ *  The Commerce Ordering being processed.
+ * @param array $settings
+ *   The Sage Pay settings.
+ *
+ * @return mixed
+ */
 function commerce_sagepay_order_form($form, &$form_state, $order, $settings) {
 
   // Wrap the order for easier access to data.
@@ -31,16 +45,18 @@ function commerce_sagepay_order_form($form, &$form_state, $order, $settings) {
   // Encrypt the order details (address and amount) ready to send to SagePay.
   $encrypted_order = _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_address, $delivery_address);
 
-  // Determine the correct transaction type based on the payment gateway settings.
+  // Determine the correct transaction type based on the gateway settings.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_TYPE)) {
     case COMMERCE_CREDIT_AUTH_CAPTURE:
       $tx_type = 'PAYMENT';
       break;
+
     case COMMERCE_CREDIT_AUTH_ONLY:
       $tx_type = 'DEFERRED';
       break;
+
     default:
-      // Set to deferred by default if there is no setting for the payment gateway.
+      // Set to deferred by default if there is no setting for the gateway.
       $tx_type = 'DEFERRED';
   }
 
@@ -83,16 +99,23 @@ function commerce_sagepay_order_form($form, &$form_state, $order, $settings) {
   return $form;
 }
 
-
 /**
  * Create a Transaction and associate it with the order.
- * @param $payment_method
- * @param $order
- * @param $charge
- * @param $tokens
- * @param $transaction_status
- * @param $remote_status
- * @param $transaction
+ *
+ * @param array $payment_method
+ *  The details of the payment method being used.
+ * @param commerce_order $order
+ *  The Commerce order associated with the transaction.
+ * @param array $charge
+ *  The charge details array including amount and currency.
+ * @param array $tokens
+ *  Tokens available for the transaction message.
+ * @param int $transaction_status
+ *  The transaction status (a constant defined by Drupal Commerce).
+ * @param string $remote_status
+ *  A String indicated the status of the transaction at Sage Pay.
+ * @param commerce_payment_transaction $transaction
+ *  If a transaction is being updated, this will be present.
  */
 function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens, $transaction_status, $remote_status, $transaction = NULL) {
   $tokens['VendorTxCode'] = $order->data['VendorTxId'];
@@ -153,15 +176,23 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
 
 /**
  * Helper function to process the response from SagePay of any transaction type.
+ *
  * Return TRUE for a successful transaction.
- * @param $payment_method
- * @param $order
- * @param $tokens
+ *
+ * @param array $payment_method
+ *  The payment method being used.
+ * @param commerce_order $order
+ *  The Commerce Order to match against the response.
+ * @param array $tokens
+ *  Tokens available to the response.
+ *
  * @return bool
+ *  Return TRUE is the payment was successful.
+ *  Return FALSE if payment is rejected or fails for any reason.
  */
 function commerce_sagepay_process_response($payment_method, $order, $tokens) {
-  // default no charge for failed transactions
-  // (these values will not be in the callback for a failed or cancelled transaction)
+  // Default no charge for failed transactions.
+  // (these values will not be in the callback for a failed or cancelled).
   $def_charge = array('amount' => 0, 'currency_code' => '');
   $order_id = $order->order_id;
   // Check for a valid status callback.
@@ -271,11 +302,30 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
 
 }
 
-
 /**
- * Encrypt the order details ready to send to SagePay Server
- **/
-function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_address, $delivery_address = NULL, $integration_method = SAGEPAY_FORM, $pane_values = NULL) {
+ * Encrypt the order details ready to send to SagePay Server.
+ *
+ * @param array $settings
+ *  The payment gateway settings.
+ * @param commerce_order $order
+ *  The Commerce Order being encrypted.
+ * @param int $total
+ *  The total value of the order.
+ * @param commerce_profile $billing_address
+ *  The billing address of the order.
+ * @param commerce_profile $delivery_address
+ *  The delivery address of the order.
+ * @param string $integration_method
+ *  The Sage Pay integration method being used.
+ * @param array $pane_values
+ *  The values from the payment checkout pane.
+ *
+ * @return array|string
+ *  Returns a String for Form integration method or an array for Server /
+ *  Direct.
+ */
+function _commerce_sagepay_encrypted_order($settings, $order, $total,
+                                            $billing_address, $delivery_address = NULL, $integration_method = SAGEPAY_FORM, $pane_values = NULL) {
 
   // Check for Commerce Card on File value which indicates someone is trying
   // to reuse a stored payment card.
@@ -332,10 +382,12 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
     case COMMERCE_CREDIT_AUTH_CAPTURE:
       $tx_type = 'PAYMENT';
       break;
+
     case COMMERCE_CREDIT_AUTH_ONLY:
       $tx_type = 'AUTHENTICATE';
       break;
     default:
+
       // Set to deferred by default if there is no setting for the payment gateway.
       $tx_type = 'DEFERRED';
   }
@@ -409,7 +461,6 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
       $query['CV2'] = $pane_values['credit_card']['code'];
       $query['CardType'] = $pane_values['credit_card']['type'];
 
-
       // Add 3D Secure flag only if the 3d Secure module is enabled for DIRECT
       if (module_exists('sagepay_3d_secure')) {
         $query['Apply3DSecure'] = variable_get(SAGEPAY_SETTING_APPLY_3D_SECURE);
@@ -421,7 +472,6 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
     case SAGEPAY_TOKEN:
 //        $query['TxType'] = 'TOKEN';
       $query['TxType'] = $tx_type;
-
       $query['Token'] = $saved_card_data['remote_id'];
       $query['StoreToken'] = 1; //@todo decide when to set this to zero - on failed transaction probably.
       $query['ApplyAVSCV2'] = 2; // Disable CV2 check as we do not store this data in Card on File
@@ -467,9 +517,8 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
     }
   }
 
-  /*
-   * Call hook to allow other modules to modify order data before it is encrypted or used.
-   */
+  // Call hook to allow other modules to modify order data before it is
+
   $query['integration_method'] = $integration_method;
   drupal_alter('sagepay_order_data', $query, $order);
   unset($query['integration_method']);
@@ -501,10 +550,14 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_a
 
 
 /**
- * Helper function for SagePay Form integration that converts a string of tokens
- * into an array.
- * @param $tokenizedstring
+ * Helper function for SagePay Form.
+ *
+ * Converts a string of tokens into an array.
+ * @param string $tokenizedstring
+ *  The string to be converted.
+ *
  * @return array
+ *  An array of tokens.
  */
 function _commerce_sagepay_form_get_tokens($tokenizedstring) {
 
@@ -531,7 +584,6 @@ function _commerce_sagepay_form_get_tokens($tokenizedstring) {
     'Surcharge',
     'BankAuthCode',
     'DeclineCode',
-
   );
 
   // Initialise arrays.
@@ -574,10 +626,14 @@ function _commerce_sagepay_form_get_tokens($tokenizedstring) {
 
 
 /**
- * Uses CURL to send a POST request to SagePay and return the response as an array.
+ * Send a POST request to SagePay and return the response as an array.
+ *
  * @param $url
+ *  The url to POST to.
  * @param $data
+ *  The data to post.
  * @return array
+ *  The response from Sage Pay.
  */
 function _commerce_sagepay_request_post($url, $data) {
   // Set a one-minute timeout for this script

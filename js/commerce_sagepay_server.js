@@ -7,8 +7,6 @@
       $('div.payment-redirect-form form', context).submit();
       $('div.payment-redirect-form #edit-submit', context).hide();
       $('div.payment-redirect-form .checkout-help', context).hide();
-
     }
   }
 })(jQuery);
-

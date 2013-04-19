@@ -10,6 +10,18 @@ module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_utils'
 
 /**
  * Form callback: allows the user to refund a transaction.
+ *
+ * @param array $form
+ *  The form array.
+ * @param array $form_state
+ *  The form state array
+ * @param commerce_order $order
+ *  The Commerce Order to process.
+ * @param commerce_payment_transaction $transaction
+ *  The Commerce Payment Transaction to process.
+ *
+ * @return mixed
+ *  The form array.
  */
 function commerce_sagepay_refund_form($form, &$form_state, $order, $transaction) {
   $form_state['order'] = $order;
@@ -73,6 +85,11 @@ function commerce_sagepay_refund_form_validate($form, &$form_state) {
 
 /**
  * Submit handler: process a refund request.
+ *
+ * @param array $form
+ *  The Form array.
+ * @param array $form_state
+ *  The Form state array.
  */
 function commerce_sagepay_refund_form_submit($form, &$form_state) {
   $transaction = $form_state['transaction'];
