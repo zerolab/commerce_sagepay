@@ -88,7 +88,7 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
   $transaction->payload = $response;
   $transaction->payload['VendorTxCode'] = $data['VendorTxCode'];
 
-  // add the user id to the transaction
+  // Add the user id to the transaction.
   $transaction->payload['merchantCustomerId'] = $order->uid;
 
   // Determine the next action depending on the Status Code returned.
@@ -109,7 +109,7 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
       $iframe_enabled = variable_get(SAGEPAY_SETTING_USE_IFRAME, 0);
 
       if ($iframe_enabled == 1) {
-        // Build the iFrame for the next step
+        // Build the iFrame for the next step.
         $form['#action'] = $response["NextURL"];
         $form['#attributes']['target'] = 'iframe_sagepay';
 
@@ -170,6 +170,7 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
  * @param array $payment_method
  *  The payment method.
  * @return bool
+ *  Return TRUE if the form validates.
  */
 function commerce_sagepay_server_redirect_form_validate($order, $payment_method) {
   $return = FALSE;
@@ -230,7 +231,7 @@ function commerce_sagepay_server_waiting_page() {
  *
  * @param string $order_id
  *    The order id.
- * @param $key
+ * @param string $key
  *    The security key.
  */
 function commerce_sagepay_server_handle_callback($order_id, $key) {
@@ -255,12 +256,12 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
     foreach ($transactions as $transaction) {
       if ($transaction->payload['VendorTxCode'] == $_POST["VendorTxCode"]) {
         // Check we have the correct transaction.
-
         $transaction->payload = $transaction->payload + $_POST;
         $payment_method = $transaction->payment_method;
 
         // Check for tampering.
-        $charge = array(); // Empty as we already know the amount in this scenario.
+        // Empty as we already know the amount in this scenario.
+        $charge = array();
 
         $md5_check = array();
 
@@ -303,17 +304,17 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
               break;
 
-            case 'REJECTED' :
+            case 'REJECTED':
               watchdog('commerce_sagepay', 'REJECTED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
               break;
 
-            case 'ABORT' :
+            case 'ABORT':
               watchdog('commerce_sagepay', 'ABORT error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
               break;
 
-            case 'FAIL' :
+            case 'FAIL':
               watchdog('commerce_sagepay', 'FAIL error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ERROR);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
               break;

@@ -131,8 +131,7 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
 
   $transaction->payload += $tokens;
   if (array_key_exists('VPSTxId', $tokens)) {
-    $transaction->remote_id =
-      $tokens['VPSTxId'];
+    $transaction->remote_id = $tokens['VPSTxId'];
   }
 
   $transaction->remote_status = $remote_status;
@@ -442,7 +441,8 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       $query['TxType'] = $tx_type;
       if (variable_get(SAGEPAY_SETTING_LOW_PROFILE, 1) == 1) {
         $query['Profile'] = 'LOW';
-      } else {
+      }
+      else {
         $query['Profile'] = 'NORMAL';
       }
       break;
@@ -540,7 +540,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       $encoded_string = _commerce_sagepay_encrypt_and_encode($query_string, variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY));
       break;
 
-    default :
+    default:
       $encoded_string = _commerce_sagepay_encrypt_and_encode($query_string, variable_get(SAGEPAY_SETTING_TEST_ENCRYPTION_KEY));
   }
 
@@ -552,6 +552,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
  * Helper function for SagePay Form.
  *
  * Converts a string of tokens into an array.
+ *
  * @param string $tokenizedstring
  *    The string to be converted.
  *
@@ -593,7 +594,7 @@ function _commerce_sagepay_form_get_tokens($tokenizedstring) {
   for ($i = count($tokens) - 1; $i >= 0; $i--) {
     // Find the position in the string.
     $start = strpos($tokenizedstring, $tokens[$i]);
-    // If it's present
+    // If it's present.
     if ($start !== FALSE) {
       // Record position and token name.
       $result[$i] = new stdClass();
@@ -627,9 +628,9 @@ function _commerce_sagepay_form_get_tokens($tokenizedstring) {
 /**
  * Send a POST request to SagePay and return the response as an array.
  *
- * @param $url
+ * @param string $url
  *  The url to POST to.
- * @param $data
+ * @param array $data
  *  The data to post.
  * @return array
  *  The response from Sage Pay.

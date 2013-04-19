@@ -213,7 +213,7 @@ function _commerce_sagepay_cart_to_xml($order) {
 
   $xml_doc->formatOutput = FALSE;
 
-  //@todo currently SagePay is rejecting this XML as invalid - need to find out why.
+  //@todo currently SagePay is rejecting this XML as invalid.
   return $xml_doc;
 }
 

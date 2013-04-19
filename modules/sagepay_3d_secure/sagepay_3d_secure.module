@@ -52,7 +52,8 @@ function sagepay_3d_secure_commerce_checkout_router($order, $checkout_page) {
 
     if (!isset($order->data['extra_authorisation'])) {
       $skip_3d_secure = TRUE;
-    } else {
+    }
+    else {
       if (!isset($order->data['extra_authorisation']['PAReq']) ||
         !isset($order->data['extra_authorisation']['ACSURL']) ||
         !isset($order->data['extra_authorisation']['MD']) ||
@@ -64,7 +65,7 @@ function sagepay_3d_secure_commerce_checkout_router($order, $checkout_page) {
     }
 
     if ($skip_3d_secure) {
-      // if there are no 3d secure markers in the order, we're done.
+      // If there are no 3d secure markers in the order, we're done.
       // Go to checkout completion page or to the offsite redirect page.
       $checkout_pages = commerce_checkout_pages();
       $next_step = $checkout_pages['3d_secure']['next_page'];
@@ -122,7 +123,6 @@ function sagepay_3d_secure_commerce_checkout_pane_info() {
  */
 function sagepay_3d_secure_pane_checkout_form($form, &$form_state, $checkout_pane, $order) {
   // Add the fields required for 3D Secure transaction.
-
   drupal_add_js("window.onload = function() { document.forms['commerce-checkout-form-3d-secure'].submit(); }", 'inline');
 
   $form['PaReq'] = array(
@@ -152,8 +152,8 @@ function sagepay_3d_secure_pane_checkout_form($form, &$form_state, $checkout_pan
 
   $form['iframe_3d_secure'] = array(
     '#markup' => '<iframe width="410" height="410" scrolling="no" frameborder="0" name ="iframe_3d_secure" id ="iframe_3d_secure" src="' .
-      url('sagepay_3d_secure/3d_secure_waiting_page')
-      . '" />',
+    url('sagepay_3d_secure/3d_secure_waiting_page')
+    . '" />',
   );
   return $form;
 }
@@ -182,6 +182,7 @@ function sagepay_3d_secure_form_alter(&$form, &$form_state, $form_id) {
 
 /**
  *  A temporary page that is displayed until the 3d secure form is submitted.
+ *
  *  Since the form is submitted via a javascript call, this page is only visible
  *  to those that have JS turned off.
  */
@@ -199,12 +200,16 @@ function sagepay_3d_secure_waiting_page() {
  */
 function sagepay_3d_secure_callback($order_number) {
   // If there's no data in the POST, return a page not found.
-  if (empty($_POST)) drupal_not_found();
+  if (empty($_POST)) {
+    drupal_not_found();
+  }
   // Attempt to reload the order
   $order = commerce_order_load_by_number($order_number);
 
   // If the order doesn't exist, return a page not found.
-  if (!isset($order)) drupal_not_found();
+  if (!isset($order)) {
+    drupal_not_found();
+  }
 
   // Check the order status - if it's already complete return a page not found.
   $order_status = commerce_order_status_load($order->status);

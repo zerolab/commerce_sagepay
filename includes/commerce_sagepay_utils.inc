@@ -34,6 +34,7 @@ function _commerce_sagepay_all_card_types() {
 
 /**
  * Populate the card names in to a usable array.
+ *
  * @param array $cards
  *    Available card codes.
  * @return array
@@ -55,7 +56,8 @@ function _commerce_sagepay_populate_card_names($cards) {
 /**
  * Correctly format the customer name.
  *
- * Some configurations have a name line where others have a first name and last name.
+ * Some configurations have a name line where others have a
+ * first name and last name.
  * This function checks both scenarios and returns a consistent name array.
  *
  * @param string $name_line
@@ -71,7 +73,7 @@ function _commerce_sagepay_populate_card_names($cards) {
 function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_name) {
 
   // If we have been supplied with a $name_line variable, split it by space
-  // and make the assumption that the last word is the last name and all other words
+  // and make the assumption that the last word is the last name and all other
   // are the first name.
   $name = array();
 
@@ -85,7 +87,9 @@ function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_n
     }
 
     // Allow for a situation where only one name was entered on the name line
-    if ($first_name == '') $first_name = 'not set';
+    if ($first_name == '') {
+      $first_name = 'not set';
+    }
   }
 
   $name['first_name'] = trim($first_name);
@@ -102,6 +106,7 @@ function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_n
  * @param string $key
  *    The encryption key.
  * @return string
+ *    The encoded string.
  */
 function _commerce_sagepay_encrypt_and_encode($string, $key) {
 
@@ -167,6 +172,7 @@ function _commerce_sagepay_removePKCS5Padding($decrypted) {
  *
  * @param string $input
  *  The input string.
+ *
  * @return string
  *  The string with padding.
  */
@@ -225,14 +231,18 @@ function _commerce_sagepay_validate_input($text, $max_length, $type = SAGEPAY_VA
     case SAGEPAY_VALIDATE_NAME:
       $pat = '/[^(A-Za-z& \/\.\'\-)]*/';
       break;
+
     case SAGEPAY_VALIDATE_ADDRESS:
       $pat = '/[^(A-Za-z0-9&:, \/\.\'\+\-\{\})]*/';
       break;
+
     case SAGEPAY_VALIDATE_POSTCODE:
       $pat = '/[^(A-Za-z0-9 \-)]*/';
       break;
+
     case SAGEPAY_VALIDATE_EMAIL:
-      //@todo could check for a valid email here, but need to know what to do if it isn't valid.
+      // @todo could check for a valid email here, but need to know what
+      // to do if it isn't valid.
       return $text;
   }
 
