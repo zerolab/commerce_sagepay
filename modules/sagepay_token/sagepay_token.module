@@ -152,5 +152,4 @@ function sagepay_token_cardonfile_delete($form, $form_state, $payment_method, $c
  */
 function sagepay_token_cardonfile_charge() {
   // @todo implement
-
 }

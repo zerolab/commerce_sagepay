@@ -254,7 +254,6 @@ function sagepay_3d_secure_callback($order_number) {
   // Process response.
   $success = commerce_sagepay_process_response($payment_method_instance, $order, $response);
 
-
   if ($success) {
     $checkout_pages = commerce_checkout_pages();
     $next_step = $checkout_pages['3d_secure']['next_page'];
