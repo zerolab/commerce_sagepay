@@ -219,7 +219,7 @@ function _commerce_sagepay_cart_to_xml($order) {
 }
 
 /**
- * Convert a an Order object into a string
+ * Convert a an Order object into a string.
  *
  * In the format required by SagePay protocol 3.0.
  *
@@ -235,7 +235,8 @@ function _commerce_sagepay_cart_to_string($order) {
   // Load an array of line items from the order.
   $order_lines = $order->commerce_line_items['und'];
 
-  // Determine the total number of lines - this is the first component of the string we send to SagePay.
+  // Determine the total number of lines - this is the first component
+  // of the string we send to SagePay.
   $total_lines = count($order_lines);
   $order_string = $total_lines . ':';
 

@@ -52,9 +52,6 @@ function sagepay_token_sagepay_order_data_alter(&$query) {
  * Implements hook_commerce_payment_method_info_alter().
  *
  * Adds card on file support to direct payment method.
- *
- * @param array $payment_methods
- *    The payment methods available on the site.
  */
 function sagepay_token_commerce_payment_method_info_alter(&$payment_methods) {
   if (array_key_exists('commerce_sagepay_direct', $payment_methods)) {

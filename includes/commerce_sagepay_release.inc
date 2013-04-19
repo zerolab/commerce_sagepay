@@ -117,14 +117,16 @@ function commerce_sagepay_release_form_submit($form, &$form_state) {
     'TxAuthNo'      => $transaction->payload['TxAuthNo'],
   );
 
-  // Determine the correct url to send the transaction to based on the transaction mode.
+  // Determine the url to send the transaction to based on the transaction mode.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
     case SAGEPAY_TXN_MODE_LIVE:
       $url = SAGEPAY_SHARED_RELEASE_TRANSACTION_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $url = SAGEPAY_SHARED_RELEASE_TRANSACTION_TEST;
       break;
+
     case SAGEPAY_TXN_MODE_SIMULATION:
       $url = SAGEPAY_SHARED_RELEASE_TRANSACTION_SIMULATION;
       break;

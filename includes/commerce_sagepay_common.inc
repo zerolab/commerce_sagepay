@@ -278,9 +278,9 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
       // Store the returned variables in the order object for processing
       // by the 3D Secure module.
       // The returned variables should be:
-      // 1) PAReq
-      // 2) ACSURL
-      // 3) MD
+      // 1) PAReq.
+      // 2) ACSURL.
+      // 3) MD.
       $tds_data = array();
       $tds_data['PAReq'] = $tokens['PAReq'];
       $tds_data['ACSURL'] = $tokens['ACSURL'];
@@ -333,12 +333,11 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
 
   // Check for Commerce Card on File value which indicates someone is trying
   // to reuse a stored payment card.
-  // Redirect the request to the sagepay_token module
+  // Redirect the request to the sagepay_token module.
   if (module_exists('sagepay_token')) {
     if (isset($pane_values) && array_key_exists('cardonfile', $pane_values) && $pane_values['cardonfile'] != 'new') {
       $saved_card_data = commerce_cardonfile_data_load($pane_values['cardonfile']);
-      if (!commerce_cardonfile_data_access($saved_card_data))
-      {
+      if (!commerce_cardonfile_data_access($saved_card_data)) {
         $saved_card_data = NULL;
       }
       if (isset($saved_card_data)) {
@@ -347,18 +346,16 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     }
   }
 
-  // add a random number to the transaction ID so that the order can be resubmitted to SagePage in the
-  // event the user clicks back to modify the order before completing. (otherwise we SagePay rejects this
-  // as a duplicate)
+  // Add a random number to the transaction ID so that the order can be
+  //  resubmitted to SagePage in the event the user clicks back to modify the
+  // order before completing. (otherwise we SagePay rejects this
+  // as a duplicate).
   $random_number = rand(0, 32000) * rand(0, 32000);
   $vendor_tx_code = $order->order_number . "_" . $random_number;
 
   // Update order number in database with the random number we just generated.
   $order->data['VendorTxId'] = $vendor_tx_code;
   commerce_order_save($order);
-
-  // set up an array of tokens to encrypt ready for SagePay
-
 
   // convert commerce int to decimal
   $order_amount = number_format(commerce_currency_amount_to_decimal($total['amount'], $total['currency_code']), 2);
@@ -386,7 +383,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     $billing_address['postal_code'] = '0000';
   }
 
-  // Determine the correct transaction type based on the payment gateway settings.
+  // Determine the transaction type based on the payment gateway settings.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_TYPE)) {
     case COMMERCE_CREDIT_AUTH_CAPTURE:
       $tx_type = 'PAYMENT';
@@ -397,10 +394,9 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       break;
     default:
 
-      // Set to deferred by default if there is no setting for the payment gateway.
+      // Set to deferred if there is no setting for the payment gateway.
       $tx_type = 'DEFERRED';
   }
-
 
   $query = array(
     'VPSProtocol'        => SAGEPAY_PROTOCOL,
@@ -431,7 +427,6 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     'ApplyAVSCV2'        => variable_get(SAGEPAY_SETTING_APPLY_AVS_CV2),
     'Apply3DSecure'      => variable_get(SAGEPAY_SETTING_APPLY_3D_SECURE),
   );
-
 
   switch ($integration_method) {
     case SAGEPAY_FORM:
@@ -614,7 +609,8 @@ function _commerce_sagepay_form_get_tokens($tokenizedstring) {
     // Get the length of the value.
     if ($i == (count($result) - 1)) {
       $output[$result[$i]->token] = substr($tokenizedstring, $value_start);
-    } else {
+    }
+    else {
       $value_length = $result[$i + 1]->start - $result[$i]->start - strlen($result[$i]->token) - 2;
       $output[$result[$i]->token] = substr($tokenizedstring, $value_start, $value_length);
     }
