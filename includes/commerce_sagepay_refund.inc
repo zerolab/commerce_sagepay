@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file commerce_sagepay_refund.inc
+ * @file
+ * commerce_sagepay_refund.inc
  * Provides integration for refunding transactions.
  */
 
@@ -12,13 +13,13 @@ module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_utils'
  * Form callback: allows the user to refund a transaction.
  *
  * @param array $form
- *  The form array.
+ *    The form array.
  * @param array $form_state
- *  The form state array
+ *    The form state array
  * @param commerce_order $order
- *  The Commerce Order to process.
+ *    The Commerce Order to process.
  * @param commerce_payment_transaction $transaction
- *  The Commerce Payment Transaction to process.
+ *    The Commerce Payment Transaction to process.
  *
  * @return mixed
  *  The form array.
@@ -87,9 +88,9 @@ function commerce_sagepay_refund_form_validate($form, &$form_state) {
  * Submit handler: process a refund request.
  *
  * @param array $form
- *  The Form array.
+ *    The Form array.
  * @param array $form_state
- *  The Form state array.
+ *    The Form state array.
  */
 function commerce_sagepay_refund_form_submit($form, &$form_state) {
   $transaction = $form_state['transaction'];
@@ -99,7 +100,7 @@ function commerce_sagepay_refund_form_submit($form, &$form_state) {
   $int_random_number = rand(0, 32000) * rand(0, 32000);
   $refund_transaction_id = 'REFUND_' . $transaction->order_id . '_' . $int_random_number;
 
-  // Set up the request to send to SagePay
+  // Set up the request to send to SagePay.
   $query = array(
     'VPSProtocol'         => SAGEPAY_PROTOCOL,
     'TxType'              => 'REFUND',
@@ -119,14 +120,15 @@ function commerce_sagepay_refund_form_submit($form, &$form_state) {
     case SAGEPAY_TXN_MODE_LIVE:
       $url = SAGEPAY_SHARED_REFUND_TRANSACTION_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $url = SAGEPAY_SHARED_REFUND_TRANSACTION_TEST;
       break;
+
     case SAGEPAY_TXN_MODE_SIMULATION:
       $url = SAGEPAY_SHARED_REFUND_TRANSACTION_SIMULATION;
       break;
   }
-
 
   // Send the request to SagePay and process the response.
   $query = _commerce_sagepay_array_to_post($query);
@@ -160,8 +162,8 @@ function commerce_sagepay_refund_form_submit($form, &$form_state) {
   $transaction_message = 'Status @status, @statusdetail. ';
 
   $refund_transaction->message = $transaction_message;
-  $refund_transaction->message_variables =
-    array(
+  $refund_transaction->message_variables
+    = array(
       '@status'       => $response['Status'],
       '@statusdetail' => $response['StatusDetail'],
     );

@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file commerce_sagepay_server.inc
+ * @file
+ * commerce_sagepay_server.inc
  * Functions for Server integration method.
  */
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
@@ -10,7 +11,7 @@ module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_utils'
 
 /**
  * Implements hook_redirect_form.
- **/
+ */
 function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $payment_method) {
   // Return an error if the enabling action's settings haven't been configured.
   if (!variable_get(SAGEPAY_SETTING_VENDOR_NAME)) {
@@ -49,12 +50,12 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
   $settings = array();
   $data = _commerce_sagepay_encrypted_order($settings, $order, $total, $billing_address, $delivery_address, SAGEPAY_SERVER);
 
-  // create a POST to send to SagePay
+  // Create a POST to send to SagePay.
   $post = '';
   foreach ($data as $name => $value) {
     $post .= urlencode($name) . '=' . urlencode($value) . '&';
   }
-  // chop off the last &
+  // chop off the last &.
   $post = substr($post, 0, -1);
 
   // determine the correct url based on the transaction mode.
@@ -69,13 +70,11 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
       $server_url = SAGEPAY_SERVER_SERVER_SIMULATION;
       break;
   }
-  // Call SagePay and we will receive the payment form that can then be included in an iFrame
+  // Call SagePay to get payment form that can then be included in an iFrame.
+  // Response as per Appendix A2 of the SagePay Server Integration Guidelines.
 
-  /**
-   * The following response will be as described in Appendix A2 of the SagePay
-   * Server integration guide (v3.0)
-   */
   $response = _commerce_sagepay_request_post($server_url, $post);
+
   // Create a new payment transaction and setup the amount.
   $transaction = commerce_payment_transaction_new('commerce_sagepay_server', $order->order_id);
   $transaction->amount = $total['amount'];
@@ -91,8 +90,6 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
   $transaction->payload['merchantCustomerId'] = $order->uid;
 
   // Determine the next action depending on the Status Code returned.
-  // Should be one of:
-  // MALFORMED, INVALID or OK
   if (!isset($response['Status'])) {
     $transaction->payload['vps_status'] = 'TIMEOUT';
     $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
@@ -128,6 +125,7 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
       }
 
       exit;
+
     case 'FAIL':
       $transaction->payload['vps_status'] = 'FAIL';
       $transaction->remote_status = SAGEPAY_REMOTE_STATUS_FAIL;
@@ -137,6 +135,7 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
 //        watchdog('commerce_sagepay', 'FAIL Status response from SagePay for order %order_id', array('%order_id' => $order->order_id), WATCHDOG_ERROR);
       drupal_goto('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key']);
       break;
+
     case 'INVALID':
       $transaction->payload['vps_status'] = 'INVALID';
       $transaction->remote_status = SAGEPAY_REMOTE_STATUS_INVALID;
@@ -146,6 +145,7 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
       watchdog('commerce_sagepay', 'INVALID Status response from SagePay for order %order_id', array('%order_id' => $order->order_id), WATCHDOG_ERROR);
       drupal_goto('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key']);
       break;
+
     default :
       $transaction->payload['vps_status'] = 'UNKNOWN';
       $transaction->remote_status = SAGEPAY_REMOTE_STATUS_UNKNOWN;
@@ -180,17 +180,22 @@ function commerce_sagepay_server_redirect_form_validate($order, $payment_method)
         $return = TRUE;
         //drupal_set_message(t('Transaction was processed succesfully'));
         break;
+
       case 'TAMPER':
         drupal_set_message(check_plain($failure_message), 'error');
         break;
+
       case 'NOTAUTHED';
         drupal_set_message(check_plain($failure_message), 'error');
         break;
+
       case 'REJECTED':
         drupal_set_message(check_plain($failure_message), 'error');
         break;
+
       case 'ABORT':
         break;
+
       case 'ERROR':
       case 'FAIL':
       case 'FAIL2':
@@ -218,8 +223,10 @@ function commerce_sagepay_server_waiting_page() {
 
 /**
  * Process the callback that is sent by SagePay Server.
- * @param $order_id
+ * @param string $order_id
+ *    The order id.
  * @param $key
+ *    The security key.
  */
 function commerce_sagepay_server_handle_callback($order_id, $key) {
   $reject_notification = FALSE;
@@ -242,23 +249,13 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
     $transactions = commerce_payment_transaction_load_multiple(array(), array('order_id' => $order->order_id));
     foreach ($transactions as $transaction) {
       if ($transaction->payload['VendorTxCode'] == $_POST["VendorTxCode"]) {
-        // Check we have the correct transaction
+        // Check we have the correct transaction.
+
         $transaction->payload = $transaction->payload + $_POST;
         $payment_method = $transaction->payment_method;
-        // Check for tampering
 
+        // Check for tampering.
         $charge = array(); // Empty as we already know the amount in this scenario.
-
-        // @todo fix this md5 check
-        /**
-         * Response md5 check is of the form:
-         * VPSTxId + VendorTxCode + Status + TxAuthNo + VendorName+ AVSCV2 +
-         * SecurityKey + AddressResult + PostCodeResult + CV2Result +
-         * GiftAid + 3DSecureStatus + CAVV + AddressStatus +
-         * PayerStatus + CardType + Last4Digits + DeclineCode + ExpiryDate +
-         * FraudResponse + BankAuthCode.
-         * from key VPSSignature 
-         */
 
         $md5_check = array();
 
@@ -299,19 +296,16 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
             case 'NOTAUTHED':
               watchdog('commerce_sagepay', 'NOTAUTHED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
-
               break;
 
             case 'REJECTED' :
               watchdog('commerce_sagepay', 'REJECTED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
-
               break;
 
             case 'ABORT' :
               watchdog('commerce_sagepay', 'ABORT error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
-
               break;
 
             case 'FAIL' :
@@ -333,21 +327,13 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
         }
 
         commerce_payment_transaction_save($transaction);
-        break; // for loop - transaction has been found
+        break;
 
       }
-
-
     }
   }
 
-
-  /**
-   * Send response back to SagePay to indicate we have received and processed notification.
-   * Status (OK, INVALID, ERROR)
-   * RedirectUrl
-   * StatusDetail
-   */
+  // Send response back to SagePay to indicate we have received and processed.
   $eoln = chr(13) . chr(10);
   $notification_redirect_url = url('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key'], array('absolute' => TRUE));
 

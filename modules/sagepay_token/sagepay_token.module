@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * @file
  * sagepay_token.module
  */
@@ -8,7 +8,7 @@
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_constants');
 
 /**
- * Implements hook_form_commerce_sagepay_settings_form_alter.
+ * Implements hook_form_commerce_sagepay_settings_form_alter().
  */
 function sagepay_token_form_commerce_sagepay_settings_form_alter(&$form, &$form_state, $form_id) {
 
@@ -34,16 +34,15 @@ function sagepay_token_form_commerce_sagepay_settings_form_alter(&$form, &$form_
  * Implements hook_sagepay_order_data_alter().
  *
  * Adds the create token parameter to the order data.
- * @param array $query
- *   The unaltered order data.
  */
 function sagepay_token_sagepay_order_data_alter(&$query) {
 
   switch ($query['integration_method']) {
-    case SAGEPAY_SERVER :
+    case SAGEPAY_SERVER:
       $query['CreateToken'] = variable_get(SAGEPAY_SETTING_REQUEST_TOKEN, 0);
       break;
-    case SAGEPAY_DIRECT :
+
+    case SAGEPAY_DIRECT:
       $query['CreateToken'] = variable_get(SAGEPAY_SETTING_REQUEST_TOKEN, 0);
       break;
   }
@@ -55,7 +54,7 @@ function sagepay_token_sagepay_order_data_alter(&$query) {
  * Adds card on file support to direct payment method.
  *
  * @param array $payment_methods
- *   The payment methods available on the site.
+ *    The payment methods available on the site.
  */
 function sagepay_token_commerce_payment_method_info_alter(&$payment_methods) {
   if (array_key_exists('commerce_sagepay_direct', $payment_methods)) {
@@ -78,7 +77,7 @@ function sagepay_token_commerce_payment_method_info_alter(&$payment_methods) {
  */
 function sagepay_token_commerce_payment_transaction_presave($transaction) {
 
-  // Check if transaction payload contains a token
+  // Check if transaction payload contains a token.
   if (!isset($transaction->payload['Token'])) {
     return FALSE;
   }
@@ -106,14 +105,14 @@ function sagepay_token_commerce_payment_transaction_presave($transaction) {
 }
 
 /**
- * Implements hook_cardonfile_update.
+ * Implements hook_cardonfile_update().
  */
 function sagepay_token_cardonfile_update($form, $form_state, $payment_method, $card_data) {
   return TRUE;
 }
 
 /**
- * Implements hook_cardonfile_delete.
+ * Implements hook_cardonfile_delete().
  */
 function sagepay_token_cardonfile_delete($form, $form_state, $payment_method, $card_data) {
   // @todo This doesn't work at the moment. SagePay is rejecting the request although it seems valid.

@@ -7,7 +7,7 @@
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
 
 /**
- * Implements hook_menu.
+ * Implements hook_menu().
  */
 function sagepay_3d_secure_menu() {
   $items = array();
@@ -18,7 +18,7 @@ function sagepay_3d_secure_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  // Define a path to receive 3D Secure callback. (Direct only)
+  // Define a path to receive 3D Secure callback. (Direct only).
   $items['commerce-sagepay/3d_secure_callback/%'] = array(
     'page callback' => 'sagepay_3d_secure_callback',
     'page arguments' => array(2),
@@ -31,23 +31,23 @@ function sagepay_3d_secure_menu() {
 
 
 /**
- * Implements hook_commerce_checkout_router($order, $checkout_page).
+ * Implements hook_commerce_checkout_router().
  */
 function sagepay_3d_secure_commerce_checkout_router($order, $checkout_page) {
   // Check if we have an active 3D Secure request from a payment module.
   // If we don't, skip this page and move onto the next in the checkout process.
   if ($checkout_page['page_id'] == '3d_secure') {
 
-    // If there is 3D Authentication required, the payment module should have placed an array
-    // in an order object field called 'extra_authorisation'
-    // This additional data will not be stored permanently, just utilised for this transaction.
+    // If there is 3D Authentication required, the payment module should have
+    // placed an array in an order object field called 'extra_authorisation'.
+    // This data won't be stored permanently, just used for this transaction.
     // The array should contain the following 4 fields:
     // 1) PAReq
     // 2) ACSURL
     // 3) MD
     // 4) Term URL
-    // If the array is not present in the order object or any of the 4 fields are missing, we
-    // skip straight past the checkout page.
+    // If the array is not present in the order object or any of the 4 fields
+    // are missing, we skip straight past the checkout page.
     $skip_3d_secure = FALSE;
 
     if (!isset($order->data['extra_authorisation'])) {
@@ -64,7 +64,8 @@ function sagepay_3d_secure_commerce_checkout_router($order, $checkout_page) {
     }
 
     if ($skip_3d_secure) {
-      // if there are no 3d secure markers in the order, we're done. Go to checkout completion page or to the offsite redirect page.
+      // if there are no 3d secure markers in the order, we're done.
+      // Go to checkout completion page or to the offsite redirect page.
       $checkout_pages = commerce_checkout_pages();
       $next_step = $checkout_pages['3d_secure']['next_page'];
       commerce_order_status_update($order, 'checkout_' . $next_step);
@@ -121,10 +122,6 @@ function sagepay_3d_secure_commerce_checkout_pane_info() {
  */
 function sagepay_3d_secure_pane_checkout_form($form, &$form_state, $checkout_pane, $order) {
   // Add the fields required for 3D Secure transaction.
-  // These will have been sent back to the payment gateway module by the initial
-  // request for payment authentication. We are relying on the payment module having
-  // placed these variables in to the $order->data array.
-  // nb We already checked for this in the hook_router function above.
 
   drupal_add_js("window.onload = function() { document.forms['commerce-checkout-form-3d-secure'].submit(); }", 'inline');
 
@@ -166,8 +163,7 @@ function sagepay_3d_secure_pane_checkout_form($form, &$form_state, $checkout_pan
  */
 function sagepay_3d_secure_form_alter(&$form, &$form_state, $form_id) {
   // Modify the checkout form so we can change the action to redirect offsite.
-  // Also rewrite the fields so they are at the top level of the form array where
-  // they will be expect by the 3rd party 3d Secure service.
+  // Also rewrite the fields so they are at the top level of the form array.
 
   if ($form_id == 'commerce_checkout_form_3d_secure') {
     $form['#action'] = $form['3d_secure']['hidden_action']['#value'];

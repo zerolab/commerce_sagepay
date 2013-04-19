@@ -1,14 +1,18 @@
 <?php
 /**
- * @file commerce_sagepay_formatters.inc
+ * @file
+ * commerce_sagepay_formatters.inc
+ *
  * Common functions for all payment methods to format the cart for SagePay.
  */
 
 /**
  * Convert a Commerce Order object to XML using the V3 protocol format.
  *
- * @param $order
- * @return \DOMDocument
+ * @param commerce_order $order
+ *    The order to convert to XML.
+ * @return DOMDocument
+ *    The XML document.
  */
 function _commerce_sagepay_cart_to_xml($order) {
 
@@ -28,14 +32,11 @@ function _commerce_sagepay_cart_to_xml($order) {
 
   $order_lines = $order->commerce_line_items['und'];
 
-  // Set up a variable to count the total number of units in the order as we
-  // look through the lines.
+  // Set up a variable to count the total number of units in the order.
   $total_items = 0;
 
-  // Loop through order lines.
   foreach ($order_lines as $line) {
 
-    // Load the line object and wrap it for easier manipulation.
     $line_item = commerce_line_item_load($line['line_item_id']);
     $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
 
@@ -60,7 +61,7 @@ function _commerce_sagepay_cart_to_xml($order) {
 
     $item_value = $line_item->commerce_unit_price['und'][0]['data']['components'][0]['price']['amount'] / 100;
 
-    // Step through components to look for tax item
+    // Step through components to look for tax item.
     $item_tax = 0;
     foreach ($line_item->commerce_unit_price['und'][0]['data']['components'] as $c) {
       if (strpos($c['name'], 'tax') === 0) {
@@ -102,7 +103,7 @@ function _commerce_sagepay_cart_to_xml($order) {
       $shipping_profile = $order_wrapper->commerce_customer_billing;
     }
 
-    // If we still have no address, skip this section of the XML
+    // If we still have no address, skip this section of the XML.
     if (isset($shipping_profile)) {
       $address = $shipping_profile->commerce_customer_address->value();
       $linexml->appendChild(
@@ -218,10 +219,14 @@ function _commerce_sagepay_cart_to_xml($order) {
 }
 
 /**
- * Convert a an Order object into a string in the format required by
- * SagePay protocol 3.0.
- * @param $order the order to be converted.
- * @return string the order as a string.
+ * Convert a an Order object into a string
+ *
+ * In the format required by SagePay protocol 3.0.
+ *
+ * @param commerce_order $order
+ *    the order to be converted.
+ * @return string
+ *    the order as a string.
  */
 function _commerce_sagepay_cart_to_string($order) {
   $order_string = '';
@@ -230,7 +235,7 @@ function _commerce_sagepay_cart_to_string($order) {
   $order_lines = $order->commerce_line_items['und'];
 
   // Determine the total number of lines - this is the first component of the string we send to SagePay.
-  $total_lines = sizeof($order_lines);
+  $total_lines = count($order_lines);
   $order_string = $total_lines . ':';
 
   // Encode each order line and add to the string.
@@ -246,19 +251,22 @@ function _commerce_sagepay_cart_to_string($order) {
 
 /**
  * Convert a single order line into a string in the format requried by SagePay.
- * @param $line_item_id the id of the line item to be converted.
- * @return string the line item as a string.
+ *
+ * @param int $line_item_id
+ *    The id of the line item to be converted.
+ * @return string
+ *    The line item as a string.
  */
 function _commerce_sagepay_line_item_to_string($line_item_id) {
 
-  // Load the line item ID
+  // Load the line item ID.
   $line_item = commerce_line_item_load($line_item_id);
   $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
 
 
   $description = $line_item_wrapper->line_item_label->value();
 
-  // remove any colons from the line description as we need this as a delimiter.
+  // Remove any colons from the line desc as we need this as a delimiter.
   $description = str_ireplace(':', ' ', $description);
 
   $quantity = $line_item_wrapper->quantity->value();
@@ -266,10 +274,10 @@ function _commerce_sagepay_line_item_to_string($line_item_id) {
   // Get the price components for the order line.
   $item_value = $line_item_wrapper->commerce_unit_price->value();
 
-  // Step through components to look for tax item
+  // Step through components to look for tax item.
   $line_data = $line_item_wrapper->commerce_unit_price->value();
 
-  // Set a default value for the tax component in case the site is not using tax.
+  // Set default value for the tax component in case the site is not using tax.
   $item_tax = array('amount' => 0, 'currency_code' => $item_value['currency_code']);
 
   foreach ($line_data['data']['components'] as $c) {

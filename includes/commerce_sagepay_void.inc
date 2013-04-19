@@ -14,16 +14,16 @@ module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_utils'
  * Form callback: allows the user to void a transaction.
  *
  * @param array $form
- *  The form array.
+ *    The form array.
  * @param array $form_state
- *  The form state array
+ *    The form state array
  * @param commerce_order $order
- *  The Commerce Order to process.
+ *   The Commerce Order to process.
  * @param commerce_payment_transaction $transaction
- *  The Commerce Payment Transaction to process.
+ *   The Commerce Payment Transaction to process.
  *
  * @return mixed
- *  The form array.
+ *    The form array.
  */
 function commerce_sagepay_void_form($form, &$form_state, $order, $transaction) {
   $form_state['order'] = $order;
@@ -50,9 +50,9 @@ function commerce_sagepay_void_form($form, &$form_state, $order, $transaction) {
  * Submit handler: Void a prior transaction.
  *
  * @param array $form
- *  The Form array.
+ *    The Form array.
  * @param array $form_state
- *  The Form state array.
+ *   The Form state array.
  */
 function commerce_sagepay_void_form_submit($form, &$form_state) {
   $transaction = $form_state['transaction'];
@@ -71,9 +71,11 @@ function commerce_sagepay_void_form_submit($form, &$form_state) {
     case SAGEPAY_TXN_MODE_LIVE:
       $url = SAGEPAY_SHARED_VOID_TRANSACTION_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $url = SAGEPAY_SHARED_VOID_TRANSACTION_TEST;
       break;
+
     case SAGEPAY_TXN_MODE_SIMULATION:
       $url = SAGEPAY_SHARED_VOID_TRANSACTION_SIMULATION;
       break;

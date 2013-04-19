@@ -35,9 +35,9 @@ function _commerce_sagepay_all_card_types() {
 /**
  * Populate the card names in to a usable array.
  * @param array $cards
- *  Available card codes.
+ *    Available card codes.
  * @return array
- *  Array of card codes and names.
+ *    Array of card codes and names.
  */
 function _commerce_sagepay_populate_card_names($cards) {
   $card_array = array();
@@ -57,13 +57,13 @@ function _commerce_sagepay_populate_card_names($cards) {
  * This function checks both scenarios and returns a consistent name array.
  *
  * @param string $name_line
- *  The name as a single line (eg Richard Jones).
+ *    The name as a single line (eg Richard Jones).
  * @param string $first_name
- *  The first name only (eg Richard).
+ *    The first name only (eg Richard).
  * @param string $last_name
- *  The last name only (eg Jones).
+ *    The last name only (eg Jones).
  * @return array
- *  An array of the name compoent parts.
+ *   An array of the name compoent parts.
  */
 function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_name) {
 
@@ -95,9 +95,9 @@ function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_n
  * Encrypt a string ready to send to SagePay using encryption key.
  *
  * @param string $string
- *  The unencrypyted string.
+ *    The unencrypyted string.
  * @param string $key
- *  The encryption key.
+ *    The encryption key.
  * @return string
  */
 function _commerce_sagepay_encrypt_and_encode($string, $key) {
@@ -119,11 +119,11 @@ function _commerce_sagepay_encrypt_and_encode($string, $key) {
  * Decode a returned string from SagePay.
  *
  * @param string $str_in
- *  The encrypted String.
+ *    The encrypted String.
  * @param string $str_encryption_password
- *  The encyption password used to encrypt the string.
+ *   The encyption password used to encrypt the string.
  * @return string
- *  The unecrypted string.
+ *   The unecrypted string.
  */
 function _commerce_sagepay_decode_and_decrypt($str_in, $str_encryption_password) {
 
@@ -148,9 +148,9 @@ function _commerce_sagepay_decode_and_decrypt($str_in, $str_encryption_password)
  * Remove PKCS5 Padding from a string.
  *
  * @param string $decrypted
- *  The decrypted string.
+ *    The decrypted string.
  * @return string
- *  String without the padding.
+ *   String without the padding.
  */
 function _commerce_sagepay_removePKCS5Padding($decrypted) {
   $pad_char = ord($decrypted[strlen($decrypted) - 1]);
@@ -184,9 +184,9 @@ function _commerce_sagepay_addPKCS5Padding($input) {
  * Decode SagePay response.
  *
  * @param string $scrambled
- *  The encoded string.
+ *    The encoded string.
  * @return string
- *  The decoded string.
+ *   The decoded string.
  */
 function _commerce_sagepay_base64Decode($scrambled) {
   $corrected = str_replace(" ", "+", $scrambled);
@@ -199,13 +199,13 @@ function _commerce_sagepay_base64Decode($scrambled) {
  * Validate a string against allowed parameters in the SagePay Protocol.
  *
  * @param string $text
- *  The string to validate.
+ *    The string to validate.
  * @param int $max_length
- *  The maximum permitted length of the string.
+ *   The maximum permitted length of the string.
  * @param string $type
- *  The type of validation.
+ *   The type of validation.
  * @return mixed
- *  The validated string.
+ *   The validated string.
  */
 function _commerce_sagepay_validate_input($text, $max_length, $type = SAGEPAY_VALIDATE_ADDRESS) {
 
@@ -248,7 +248,7 @@ function _commerce_sagepay_validate_input($text, $max_length, $type = SAGEPAY_VA
  * Mastercard test card number: 5404000000000001
  *
  * @param commerce_payment_transaction $transaction
- *  The transaction to be modified.
+ *    The transaction to be modified.
  */
 function _commerce_sagepay_substitute_for_test_data(&$transaction) {
   watchdog('commerce_sagepay_direct', 'Processing transaction in test mode so overwriting entered data with test data', array(), WATCHDOG_WARNING);
@@ -264,9 +264,9 @@ function _commerce_sagepay_substitute_for_test_data(&$transaction) {
  * Convert a data array to a single string ready to post.
  *
  * @param array $data
- *  The data array.
+ *    The data array.
  * @return string
- *  The array as a string.
+ *   The array as a string.
  */
 function _commerce_sagepay_array_to_post($data) {
 
@@ -285,29 +285,15 @@ function _commerce_sagepay_array_to_post($data) {
  * Remove unwanted characters from strings.
  *
  * @param string $text
- *  The string to clean.
+ *    The string to clean.
  * @param $type
- *  The type of string being cleaned.
+ *   The type of string being cleaned.
  * @return string
- *  The clean string.
+ *   The clean string.
  */
 function _commerce_sagepay_clean_input($text, $type) {
 
-//  if ($type == "Number") {
-//    $chars = "0123456789.";
-//  }
-//  elseif ($type == "VendorTxCode") {
-//    $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.";
-//  }
-//  else {
-//    $chars = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.,'/{}@():?-_&£$=%~<>*+\"";
-//  }
-//
-//  $pattern = "/[^".preg_quote($chars, "/")."]/";
-//  $clean_text = preg_replace($pattern, "", $text);
-
   $clean_text = check_plain($text);
-
   return $clean_text;
 
 }

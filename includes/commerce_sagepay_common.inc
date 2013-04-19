@@ -8,15 +8,16 @@
  * Sets up a new form for the submit to Sage Pay button (off site redirect).
  *
  * @param array $form
- *  The form array.
+ *    The form array.
  * @param array $form_state
- *  Currency values and form state.
+ *    Currency values and form state.
  * @param commerce_order $order
- *  The Commerce Ordering being processed.
+ *    The Commerce Ordering being processed.
  * @param array $settings
- *   The Sage Pay settings.
+ *    The Sage Pay settings.
  *
  * @return mixed
+ *   The form array.
  */
 function commerce_sagepay_order_form($form, &$form_state, $order, $settings) {
 
@@ -68,11 +69,12 @@ function commerce_sagepay_order_form($form, &$form_state, $order, $settings) {
     'Crypt'       => $encrypted_order,
   );
 
-  // determine the correct url based on the transaction mode.
+  // Determine the correct url based on the transaction mode.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
     case SAGEPAY_TXN_MODE_LIVE:
       $server_url = SAGEPAY_FORM_SERVER_LIVE;
       break;
+
     case SAGEPAY_TXN_MODE_TEST:
       $server_url = SAGEPAY_FORM_SERVER_TEST;
       break;
@@ -103,19 +105,19 @@ function commerce_sagepay_order_form($form, &$form_state, $order, $settings) {
  * Create a Transaction and associate it with the order.
  *
  * @param array $payment_method
- *  The details of the payment method being used.
+ *    The details of the payment method being used.
  * @param commerce_order $order
- *  The Commerce order associated with the transaction.
+ *    The Commerce order associated with the transaction.
  * @param array $charge
- *  The charge details array including amount and currency.
+ *    The charge details array including amount and currency.
  * @param array $tokens
- *  Tokens available for the transaction message.
+ *    Tokens available for the transaction message.
  * @param int $transaction_status
- *  The transaction status (a constant defined by Drupal Commerce).
+ *    The transaction status (a constant defined by Drupal Commerce).
  * @param string $remote_status
- *  A String indicated the status of the transaction at Sage Pay.
+ *    A String indicated the status of the transaction at Sage Pay.
  * @param commerce_payment_transaction $transaction
- *  If a transaction is being updated, this will be present.
+ *    If a transaction is being updated, this will be present.
  */
 function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens, $transaction_status, $remote_status, $transaction = NULL) {
   $tokens['VendorTxCode'] = $order->data['VendorTxId'];
@@ -125,12 +127,17 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
     $transaction->instance_id = $payment_method['instance_id'];
     $transaction->amount = $charge['amount'];
     $transaction->currency_code = $charge['currency_code'];
-
   }
+
   $transaction->payload += $tokens;
-  if (array_key_exists('VPSTxId', $tokens)) $transaction->remote_id = $tokens['VPSTxId'];
+  if (array_key_exists('VPSTxId', $tokens)) {
+    $transaction->remote_id =
+      $tokens['VPSTxId'];
+  }
+
   $transaction->remote_status = $remote_status;
-  // set a status for the payment - one of COMMERCE_PAYMENT_STATUS_SUCCESS, COMMERCE_PAYMENT_STATUS_PENDING or COMMERCE_PAYMENT_STATUS_FAILURE
+  // Set a status for the payment - one of COMMERCE_PAYMENT_STATUS_SUCCESS,
+  // COMMERCE_PAYMENT_STATUS_PENDING or COMMERCE_PAYMENT_STATUS_FAILURE
   $transaction->status = $transaction_status;
 
   $transaction_message = 'Status @status, @statusdetail. ';
@@ -150,8 +157,8 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
   $transaction_message .= 'Decline Code: @declinecode. ';
 
   $transaction->message = $transaction_message;
-  $transaction->message_variables =
-    array(
+  $transaction->message_variables
+    = array(
       '@status'        => $tokens['Status'],
       '@statusdetail'  => isset($tokens['StatusDetail']) ? $tokens['StatusDetail'] : 'N/A',
       '@vpstxid'       => isset($tokens['VPSTxId']) ? $tokens['VPSTxId'] : 'N/A',
@@ -180,15 +187,15 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
  * Return TRUE for a successful transaction.
  *
  * @param array $payment_method
- *  The payment method being used.
+ *    The payment method being used.
  * @param commerce_order $order
- *  The Commerce Order to match against the response.
+ *    The Commerce Order to match against the response.
  * @param array $tokens
- *  Tokens available to the response.
+ *    Tokens available to the response.
  *
  * @return bool
- *  Return TRUE is the payment was successful.
- *  Return FALSE if payment is rejected or fails for any reason.
+ *    Return TRUE is the payment was successful.
+ *    Return FALSE if payment is rejected or fails for any reason.
  */
 function commerce_sagepay_process_response($payment_method, $order, $tokens) {
   // Default no charge for failed transactions.
