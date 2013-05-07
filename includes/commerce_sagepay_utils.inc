@@ -79,7 +79,7 @@ function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_n
   $name = array();
 
   if (isset($name_line)) {
-    $split_name = explode(' ', $name_line);
+    $split_name = explode(' ', trim($name_line));
 
     $last_name = array_pop($split_name);
     foreach ($split_name as $n) {
