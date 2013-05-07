@@ -43,6 +43,9 @@ function _commerce_sagepay_all_card_types() {
  */
 function _commerce_sagepay_populate_card_names($cards) {
   $card_array = array();
+  if (empty($cards)) {
+    return $card_array;
+  }
   $names = _commerce_sagepay_all_card_names();
   foreach (array_values($cards) as $c) {
     if ($c != '0') {

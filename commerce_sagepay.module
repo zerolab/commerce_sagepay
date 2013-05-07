@@ -546,23 +546,32 @@ function commerce_sagepay_page_build($page) {
 function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
   // If the current form ID is for a checkout form...
   if (strpos($form_id, 'commerce_checkout_form_') === 0) {
-    drupal_add_css(drupal_get_path('module', 'commerce_sagepay') . '/css/sagepay_direct.css');
 
-    // And it specifies a valid checkout page...
-    if (commerce_checkout_page_load(substr($form_id, 23))) {
-      // And the current page's form includes the payment checkout pane...
-      if (!empty($form['commerce_payment'])) {
-        $enabled_cards = variable_get(SAGEPAY_SETTING_ENABLED_CARDS);
-        $card_images = theme_commerce_sagepay_card_logos(array('enabled_cards' => $enabled_cards));
-        $payment_details = $form['commerce_payment']['payment_details'];
-        if (array_key_exists('credit_card', $payment_details)) {
+    // Check if this is the direct payment method.
+    // This is the only one that needs card logos.
+    $instance_id = $form['commerce_payment']['payment_method']['#default_value'];
+    $payment_method = commerce_payment_method_instance_load($instance_id);
 
-          // Add credit card logos about the card dropdown.
-          array_unshift($form['commerce_payment']['payment_details']['credit_card'], array('logos' => array('#markup' => $card_images)));
+    if (strpos($payment_method['instance_id'], 'sagepay_direct') > 0) {
 
-          // Replace the card selection dropdown with one based on our
-          // available cards.
-          $form['commerce_payment']['payment_details']['credit_card']['type']['#options'] = _commerce_sagepay_populate_card_names($enabled_cards);
+      drupal_add_css(drupal_get_path('module', 'commerce_sagepay') . '/css/sagepay_direct.css');
+
+      // And it specifies a valid checkout page...
+      if (commerce_checkout_page_load(substr($form_id, 23))) {
+        // And the current page's form includes the payment checkout pane...
+        if (!empty($form['commerce_payment'])) {
+          $enabled_cards = variable_get(SAGEPAY_SETTING_ENABLED_CARDS);
+          $card_images = theme_commerce_sagepay_card_logos(array('enabled_cards' => $enabled_cards));
+          $payment_details = $form['commerce_payment']['payment_details'];
+          if (array_key_exists('credit_card', $payment_details)) {
+
+            // Add credit card logos about the card dropdown.
+            array_unshift($form['commerce_payment']['payment_details']['credit_card'], array('logos' => array('#markup' => $card_images)));
+
+            // Replace the card selection dropdown with one based on our
+            // available cards.
+            $form['commerce_payment']['payment_details']['credit_card']['type']['#options'] = _commerce_sagepay_populate_card_names($enabled_cards);
+          }
         }
       }
     }
@@ -596,6 +605,9 @@ function commerce_sagepay_theme($existing, $type, $theme, $path) {
  *   A themed output of card logos.
  */
 function theme_commerce_sagepay_card_logos($enabled_cards) {
+  if (!isset($enabled_cards['enabled_cards'])) {
+    return '<div />';
+  }
   $output = '<div class="card_type_images">';
   foreach ($enabled_cards['enabled_cards'] as $c) {
     if ($c != '0') {
