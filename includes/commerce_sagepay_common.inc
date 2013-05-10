@@ -357,7 +357,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   commerce_order_save($order);
 
   // Convert commerce int to decimal.
-  $order_amount = number_format(commerce_currency_amount_to_decimal($total['amount'], $total['currency_code']), 2);
+  $order_amount = number_format(commerce_currency_amount_to_decimal($total['amount'], $total['currency_code']), 2, '.', '');
 
   // Check if we need to encode cart.
   $cart_setting = variable_get('sagepay_send_basket_contents');
