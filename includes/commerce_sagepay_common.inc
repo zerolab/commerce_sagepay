@@ -445,7 +445,12 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       else {
         $query['Profile'] = 'NORMAL';
       }
+
+      $query['AccountType'] = variable_get(SAGEPAY_SETTING_ACCOUNT_TYPE, 'E');
+
       break;
+
+
 
     case SAGEPAY_DIRECT:
       $query['TxType'] = $tx_type;
@@ -467,6 +472,9 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       else {
         $query['Apply3DSecure'] = 2;
       }
+
+      $query['AccountType'] = variable_get(SAGEPAY_SETTING_ACCOUNT_TYPE, 'E');
+
       break;
 
     case SAGEPAY_TOKEN:
@@ -519,6 +527,17 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   // Call hook to allow other modules to modify order data before it is.
   $query['integration_method'] = $integration_method;
   drupal_alter('sagepay_order_data', $query, $order);
+
+  // Invoke rules events which allow manipulation of the order data array.
+  rules_invoke_all('commerce_sagepay_prepare_transaction', $query,
+    $order);
+
+  // Check if rules have added any overrides and merge these into the
+  // transaction.
+  if (isset($order->data['sagepay_overrides'])) {
+    $query = array_merge($query, $order->data['sagepay_overrides']);
+  }
+
   unset($query['integration_method']);
 
   // For Server mode, we can return the Array now before encryption.
