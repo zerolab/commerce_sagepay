@@ -547,6 +547,9 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
   // If the current form ID is for a checkout form...
   if (strpos($form_id, 'commerce_checkout_form_') === 0) {
 
+    // Check if the payment pane is on this page - return if not.
+    if (!isset($form['commerce_payment'])) return;
+
     // Check if this is the direct payment method.
     // This is the only one that needs card logos.
     $instance_id = $form['commerce_payment']['payment_method']['#default_value'];
