@@ -125,16 +125,19 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
     case 'OK':
       watchdog('commerce_sagepay', 'OK Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
       $remote_status = SAGEPAY_REMOTE_STATUS_OK;
+      $transaction_status = COMMERCE_PAYMENT_STATUS_SUCCESS;
       break;
 
     case 'AUTHENTICATED':
       watchdog('commerce_sagepay', 'AUTHENTICATED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
       $remote_status = SAGEPAY_REMOTE_STATUS_AUTHENTICATE;
+      $transaction_status = COMMERCE_PAYMENT_STATUS_SUCCESS;
       break;
 
     case 'REGISTERED':
       watchdog('commerce_sagepay', 'REGISTERED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
       $remote_status = SAGEPAY_REMOTE_STATUS_REGISTERED;
+      $transaction_status = COMMERCE_PAYMENT_STATUS_PENDING;
       break;
 
     default:
@@ -150,7 +153,8 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
   $charge['amount'] = $tokens['Amount'] * 100;
   $charge['currency_code'] = $order->commerce_order_total['und'][0]['currency_code'];
 
-  commerce_sagepay_transaction($payment_method, $order, $charge, $tokens, $tokens['Status'], $remote_status);
+  commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
+    $transaction_status, $remote_status);
 
   return TRUE;
 }
