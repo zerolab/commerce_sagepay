@@ -127,6 +127,8 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
     $transaction->instance_id = $payment_method['instance_id'];
     $transaction->amount = $charge['amount'];
     $transaction->currency_code = $charge['currency_code'];
+  } else {
+    $transaction->revision = 1;
   }
 
   $transaction->payload += $tokens;

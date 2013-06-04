@@ -90,7 +90,7 @@ function sagepay_3d_secure_commerce_checkout_page_info() {
     'status_cart' => FALSE,
     'locked' => TRUE,
     'buttons' => FALSE,
-    'weight' => 15,
+    'weight' => 22,
   );
   return $checkout_pages;
 }

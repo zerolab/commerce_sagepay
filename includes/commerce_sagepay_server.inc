@@ -235,23 +235,20 @@ function commerce_sagepay_server_waiting_page() {
  *    The security key.
  */
 function commerce_sagepay_server_handle_callback($order_id, $key) {
-  $reject_notification = FALSE;
-
+  $notification = array();
   $order = commerce_order_load($order_id);
 
   // Check key against supplied value.
   if (!$order->data['payment_redirect_key'] === $key) {
-    $reject_notification = TRUE;
-    $notification_status = 'INVALID';
-    $notification_status_detail = t('Payment Redirect key did not match.');
+    $notification['status'] = 'INVALID';
+    $notification['message'] = t('Payment Redirect key did not match.');
   }
 
   if (empty($_POST)) {
-    $reject_notification = TRUE;
-    $notification_status = 'ERROR';
-    $notification_status_detail = t('No Payload returned in the notification POST.');
+    $notification['status'] = 'ERROR';
+    $notification['message'] = t('No Payload returned in the notification POST.');
   }
-  if (!$reject_notification) {
+  if (empty($notification)) {
     $transactions = commerce_payment_transaction_load_multiple(array(), array('order_id' => $order->order_id));
     foreach ($transactions as $transaction) {
       if ($transaction->payload['VendorTxCode'] == $_POST["VendorTxCode"]) {
@@ -297,31 +294,41 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
             case 'OK':
               watchdog('commerce_sagepay', 'OK Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $transaction->payload['Status']));
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_SUCCESS, SAGEPAY_REMOTE_STATUS_PAYMENT, $transaction);
+              $notification['status'] = 'OK';
+              $notification['message'] = t('Transaction notification received.');
               break;
 
             case 'NOTAUTHED':
               watchdog('commerce_sagepay', 'NOTAUTHED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+              $notification['status'] = 'OK';
+              $notification['cancel'] = TRUE;
               break;
 
             case 'REJECTED':
               watchdog('commerce_sagepay', 'REJECTED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+              $notification['status'] = 'OK';
+              $notification['cancel'] = TRUE;
               break;
 
             case 'ABORT':
               watchdog('commerce_sagepay', 'ABORT error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+              $notification['status'] = 'OK';
+              $notification['cancel'] = TRUE;
               break;
 
             case 'FAIL':
               watchdog('commerce_sagepay', 'FAIL error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ERROR);
               commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+              $notification['status'] = 'OK';
+              $notification['cancel'] = TRUE;
               break;
 
           }
-          $notification_status = 'OK';
-          $notification_status_detail = t('Transaction notification received.');
+
+
 
         }
         else {
@@ -329,8 +336,9 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
           $transaction->remote_status = 'TAMPER';
           $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
           commerce_sagepay_transaction($payment_method, $order, array(), $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
-          $notification_status = 'INVALID';
-          $notification_status_detail = t('MD5 did not match - signs of tampering.');
+          $notification['status'] = 'INVALID';
+          $notification['message'] = t('MD5 did not match - signs of tampering
+          .');
         }
 
         commerce_payment_transaction_save($transaction);
@@ -342,9 +350,22 @@ function commerce_sagepay_server_handle_callback($order_id, $key) {
 
   // Send response back to SagePay to indicate we have received and processed.
   $eoln = chr(13) . chr(10);
-  $notification_redirect_url = url('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key'], array('absolute' => TRUE));
+  if (array_key_exists('cancel', $notification)) {
+    commerce_payment_redirect_pane_previous_page($order);
 
-  $return_notification = 'Status=' . $notification_status . $eoln . 'RedirectURL=' . $notification_redirect_url . $eoln . 'StatusDetail=' . $notification_status_detail . $eoln;
+    $notification['redirect'] =   url
+    ('checkout/' .
+    $order->order_id. '/payment/cancel/' .
+    $order->data['payment_redirect_key'], array('absolute' => TRUE));
+  } else {
+    $notification['redirect'] =   url
+    ('checkout/' .
+    $order->order_id. '/payment/return/' . $order->data['payment_redirect_key'], array('absolute' => TRUE));
+  }
+
+  $return_notification = 'Status=' . $notification_status . $eoln .
+    'RedirectURL=' . $notification['redirect'] . $eoln . 'StatusDetail=' .
+    $notification_status_detail . $eoln;
 
   echo $return_notification;
   exit;
