@@ -160,10 +160,191 @@ function commerce_sagepay_repeat_form_submit($form, &$form_state) {
   $repeat_transaction->message = $transaction_message;
   $repeat_transaction->message_variables
     = array(
-      '@status'       => $response['Status'],
-      '@statusdetail' => $response['StatusDetail'],
-    );
+    '@status'       => $response['Status'],
+    '@statusdetail' => $response['StatusDetail'],
+  );
 
   commerce_payment_transaction_save($repeat_transaction);
   $form_state['redirect'] = 'admin/commerce/orders/' . $form_state['order']->order_id . '/payment';
+}
+
+
+/**
+ * Process a repeat transaction
+ *
+ * @param commerce_order $order
+ *      The repeat order.
+ * @param int $charge
+ *      The amount to charge.
+ *
+ * @return A response array.
+ */
+function commerce_sagepay_repeat_process_transaction($order, $charge) {
+
+  $response = array(
+    'status' => FALSE,
+    'code' => SAGEPAY_REMOTE_STATUS_INVALID,
+    'message' => '',
+    'message_variables' => array(),
+  );
+
+  // Exit if no order id
+  if (empty($order->order_id)) {
+    $response['message'] = t('Order ID is not provided.');
+    return $response;
+  }
+
+  $response['message_variables'] += array(
+    '@order_id' => $order->order_id,
+  );
+
+  // Exit if no user associated with the order
+  if (empty($order->uid)) {
+    $response['message'] = t('Order owner not provided for order @order_id.');
+    return $response;
+  }
+  $response['message_variables'] += array(
+    '@uid' => $order->uid,
+  );
+
+  // Determine charge amount.
+  // Set charge to order balance if none provided.
+  if (empty($charge)) {
+    $charge = commerce_payment_order_balance($order);
+  }
+
+  // Exit if no charge.
+  if (empty($charge) || empty($charge['amount']) || empty($charge['currency_code'])) {
+    $response['message'] = 'Charge amount not provided for order @order_id.';
+    return $response;
+  }
+
+  $response['message_variables'] += array(
+    '@charge' => commerce_currency_format($charge['amount'], $charge['currency_code']),
+  );
+
+  // Look up the recurring entity so we can get the original order.
+  $recurring_entity_id = isset($order->data['recurring_entity']) ?
+    $order->data['recurring_entity'] : NULL;
+  if (is_null($recurring_entity_id)) {
+    $response['code'] = SAGEPAY_REMOTE_STATUS_INVALID;
+    $response['message'] = t('No original transaction present');
+    return $response;
+  }
+
+  // Load the recurring entity
+  $recurring_entity = commerce_recurring_load($recurring_entity_id);
+  if ($recurring_entity == FALSE) {
+    $response['code'] = SAGEPAY_REMOTE_STATUS_INVALID;
+    $response['message'] = t('Referenced recurring entity does not
+    exist.');
+    return $response;
+  }
+  $recurring_entity_wrapper = entity_metadata_wrapper('commerce_recurring',
+    $recurring_entity);
+
+  // Load the original order.
+  $related_orders = $recurring_entity_wrapper->commerce_recurring_order
+    ->value();
+
+  $original_order = $related_orders[0];
+  if ($original_order == FALSE) {
+    $response['code'] = SAGEPAY_REMOTE_STATUS_INVALID;
+    $response['message'] = t('Original order does not exist.');
+    return $response;
+  }
+
+  // Check the original order is owned by the same user as the recurring order.
+  if ($order->uid != $original_order->uid) {
+    $response['code'] = SAGEPAY_REMOTE_STATUS_INVALID;
+    $response['message'] = t('Original order belongs to a different user.');
+    return $response;
+  }
+
+  // Get the successful transaction from the initial order.
+  $original_transactions = commerce_payment_transaction_load_multiple(array(),
+    array('order_id' => $original_order->order_id, 'remote_status' =>
+    SAGEPAY_REMOTE_STATUS_PAYMENT));
+
+  if (count($original_transactions) == 0) {
+    $response['code'] = SAGEPAY_REMOTE_STATUS_INVALID;
+    $response['message'] = t('Original order does not have a transaction with
+     the remote status PAYMENT');
+    return $response;
+  }
+
+  $original_transaction_objects = array_values($original_transactions);
+  $original_transaction = $original_transaction_objects[0];
+
+  // Set up a new transaction ready to take the repeat payment.
+  $int_random_number = rand(0, 32000) * rand(0, 32000);
+  $repeat_transaction_id = 'REPEAT_' . $transaction->order_id . '_' . $int_random_number;
+  $query = array(
+    'VPSProtocol'         => SAGEPAY_PROTOCOL,
+    'TxType'              => 'REPEAT',
+    'Vendor'              => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
+    'VendorTxCode'        => $repeat_transaction_id,
+    'Amount'              => $charge['amount'],
+    'Currency'            => $original_transaction->currency_code,
+    'Description'         => t('Repeat payment against order %order_id', array('%order_id' => $original_transaction->order_id)),
+    'RelatedVPSTxId'      => $original_transaction->remote_id,
+    'RelatedVendorTxCode' => $original_transaction->payload['VendorTxCode'],
+    'RelatedSecurityKey'  => $original_transaction->payload['SecurityKey'],
+    'RelatedTxAuthNo'     => $original_transaction->payload['TxAuthNo'],
+  );
+
+  switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
+    case SAGEPAY_TXN_MODE_LIVE:
+      $url = SAGEPAY_SHARED_REPEAT_TRANSACTION_LIVE;
+      break;
+
+    case SAGEPAY_TXN_MODE_TEST:
+      $url = SAGEPAY_SHARED_REPEAT_TRANSACTION_TEST;
+      break;
+
+    case SAGEPAY_TXN_MODE_SIMULATION:
+      $url = SAGEPAY_SHARED_REPEAT_TRANSACTION_SIMULATION;
+      break;
+  }
+
+  $query = _commerce_sagepay_array_to_post($query);
+
+  $response = _commerce_sagepay_request_post($url, $query);
+
+  // Create a new transaction for the repeat order.
+  $repeat_transaction = commerce_payment_transaction_new
+  ($original_transaction->payment_method, $order->order_id);
+  $repeat_transaction->instance_id = $original_transaction->instance_id;
+  $repeat_transaction->amount = $charge['amount'];
+  $repeat_transaction->currency_code = $original_transaction->currency_code;
+  $repeat_transaction->remote_id = $repeat_transaction_id;
+  $repeat_transaction->payload = $response;
+  $repeat_transaction->remote_status = SAGEPAY_REMOTE_STATUS_PAYMENT;
+
+  switch ($response['Status']) {
+    case 'OK':
+      $response['message'] = t('Payment repeated successfully.');
+      $response['status'] = SAGEPAY_REMOTE_STATUS_OK;
+      $repeat_transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+      break;
+
+    default:
+      // Display an error message but leave the transaction pending.
+      $repeat_transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
+      $response['message'] = t('Transaction repeat failed. ' . check_plain($response['StatusDetail']));
+  }
+
+  $transaction_message = 'Status @status, @statusdetail. ';
+
+  $repeat_transaction->message = $transaction_message;
+  $repeat_transaction->message_variables
+    = array(
+    '@status'       => $response['Status'],
+    '@statusdetail' => $response['StatusDetail'],
+  );
+
+  commerce_payment_transaction_save($repeat_transaction);
+
+
+  return $response;
 }

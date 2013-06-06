@@ -131,6 +131,26 @@ function commerce_sagepay_rules_action_info() {
     'group' => t('Commerce SagePay'),
   );
 
+  $actions['commerce_sagepay_request_token'] = array(
+    'label' => t('Request a token when creating the transaction (if available)
+    .'),
+    'parameter' => array(
+      'commerce_order' => array(
+        'type' => 'commerce_order',
+        'label' => t('Order'),
+      ),
+      'token' => array(
+        'type' => 'text',
+        'label' => t('Request Token'),
+        'options list' => 'commerce_sagepay_request_token_list',
+      ),
+    ),
+    'callbacks' => array(
+      'execute' => 'commerce_sagepay_update_order_token_flag',
+    ),
+    'group' => t('Commerce SagePay'),
+  );
+
   $actions['commerce_sagepay_remove_overrides'] = array(
     'label' => t('Removes transaction overrides set by previous rules.'),
     'parameter' => array(
@@ -143,6 +163,33 @@ function commerce_sagepay_rules_action_info() {
       'execute' => 'commerce_sagepay_remove_overrides',
     ),
     'group' => t('Commerce SagePay'),
+
+  $actions['commerce_sagepay_repeat_charge_card'] = array(
+    'label' => t('Charge an order using a repeat payment'),
+    'group' => t('Commerce SagePay'),
+    'parameter' => array(
+      'order' => array(
+        'type' => 'commerce_order',
+        'label' => t('Order'),
+      ),
+      'charge' => array(
+        'type' => 'commerce_price',
+        'label' => t('Charge'),
+        'description' => t('The charge amount and currency. If not provided, then the order balance will be used.'),
+        'optional' => TRUE,
+      ),
+    ),
+    'provides' => array(
+      'charge_card_response' => array(
+        'type' => 'commerce_cardonfile_charge_card_response',
+        'label' => t('Charge Card Response'),
+        'save' => FALSE,
+      ),
+    ),
+    'callbacks' => array(
+      'execute' => 'commerce_sagepay_rules_action_repeat_charge_card',
+    ),
+  ),
 
 );
 
@@ -241,6 +288,24 @@ function commerce_sagepay_update_order_3ds_flag($order,
 }
 
 /**
+ * Set an override parameter in the order for Token.
+ *
+ * Store an override for the Token parameter for the Sage Pay transaction.
+ *
+ * @param $order
+ * @param $flag
+ */
+function commerce_sagepay_update_order_token_flag($order,
+                                                  $flag) {
+
+  $sagepay_overrides = isset($order->data['sagepay_overrides']) ?
+    $order->data['sagepay_overrides'] : array();
+  $sagepay_overrides['CreateToken'] = $flag;
+  $order->data['sagepay_overrides'] = $sagepay_overrides;
+  commerce_order_save($order);
+}
+
+/**
  * Remove any existing override data stored in an order.
  *
  * @param $order
@@ -302,4 +367,29 @@ function commerce_sagepay_3ds_flag_list() {
     '2' => t('Do not perform 3D-Secure checks for this transaction and always authorise.'),
     '3' => t('Force 3D-Secure checks for this transaction if possible but ALWAYS obtain an auth code, irrespective of rule base.'),
   );
+}
+
+/**
+ * Return a list of supported Token options.
+ *
+ * @return array
+ */
+function commerce_sagepay_request_token_list() {
+  return array(
+    '0' => t('No token is required (default)'),
+    '1' => t('Request a token if the account supports it and card on file is
+    active.'),
+  );
+}
+
+/**
+ * Rules action callback for commerce_sagepay_repeat_charge_card
+ */
+function commerce_sagepay_rules_action_repeat_charge_card($order,
+                                                        $charge = NULL) {
+
+  module_load_include('inc', 'commerce_sagepay',
+    'includes/commerce_sagepay_repeat');
+  $response = commerce_sagepay_repeat_process_transaction($order, $charge);
+  return array('charge_card_response' => $response);
 }
