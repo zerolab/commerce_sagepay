@@ -131,7 +131,8 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
     $transaction->revision = 1;
   }
 
-  $transaction->payload += $tokens;
+//  $transaction->payload += $tokens;
+  $transaction->payload = array_merge($transaction->payload, $tokens);
   if (array_key_exists('VPSTxId', $tokens)) {
     $transaction->remote_id = $tokens['VPSTxId'];
   }
@@ -244,8 +245,10 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
     case 'OK':
       $arr_charge = array();
       $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
-      $arr_charge['amount'] = $tokens['Amount'];
-      $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
+      if (array_key_exists('Amount', $tokens)) {
+        $arr_charge['amount'] = $tokens['Amount'];
+        $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
+      }
       $transaction = NULL;
 
       // If 3D secure is in use, we may have to load a partial transaction.
@@ -337,8 +340,12 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   // Redirect the request to the sagepay_token module.
   if (module_exists('sagepay_token')) {
     if (isset($pane_values) && array_key_exists('cardonfile', $pane_values) && $pane_values['cardonfile'] != 'new') {
-      $saved_card_data = commerce_cardonfile_data_load($pane_values['cardonfile']);
-      if (!commerce_cardonfile_data_access($saved_card_data)) {
+      $saved_card_data = commerce_cardonfile_load($pane_values['cardonfile']);
+
+      if (!array_key_exists('commerce_recurring',
+        $pane_values) && !commerce_cardonfile_access
+      ('view',
+        $saved_card_data)) {
         $saved_card_data = NULL;
       }
       if (isset($saved_card_data)) {
@@ -481,7 +488,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
 
     case SAGEPAY_TOKEN:
       $query['TxType'] = $tx_type;
-      $query['Token'] = $saved_card_data['remote_id'];
+      $query['Token'] = $saved_card_data->remote_id;
       $query['StoreToken'] = 1;
 
       // Disable CV2 check as we do not store this data in Card on File.
