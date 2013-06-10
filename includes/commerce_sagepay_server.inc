@@ -159,61 +159,8 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
       break;
   }
 
+
 }
-
-
-/**
- * Validate payment by checking status of last transaction.
- *
- * @param commerce_order $order
- *  The Commerce Order.
- * @param array $payment_method
- *  The payment method.
- * @return bool
- *  Return TRUE if the form validates.
- */
-function commerce_sagepay_server_redirect_form_validate($order, $payment_method) {
-  $return = FALSE;
-  $transactions = commerce_payment_transaction_load_multiple(array(), array('order_id' => $order->order_id));
-  if (count($transactions) > 0) {
-    $transaction = end($transactions);
-    $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
-
-    $failure_message = t('There was a problem processing your transaction. Your credit/debit card was not charged. Please try again later.');
-    switch ($transaction->payload['vps_status']) {
-      case 'OK':
-        $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
-        $return = TRUE;
-        break;
-
-      case 'TAMPER':
-        drupal_set_message(check_plain($failure_message), 'error');
-        break;
-
-      case 'NOTAUTHED';
-        drupal_set_message(check_plain($failure_message), 'error');
-        break;
-
-      case 'REJECTED':
-        drupal_set_message(check_plain($failure_message), 'error');
-        break;
-
-      case 'ABORT':
-        break;
-
-      case 'ERROR':
-      case 'FAIL':
-      case 'FAIL2':
-      case 'UNKNOWN':
-        drupal_set_message(check_plain($failure_message), 'error');
-        break;
-    }
-    commerce_payment_transaction_save($transaction);
-  }
-
-  return $return;
-}
-
 
 /**
  * Outputs a temporary page before the SagePay form is submitted.
@@ -234,140 +181,214 @@ function commerce_sagepay_server_waiting_page() {
  * @param string $key
  *    The security key.
  */
-function commerce_sagepay_server_handle_callback($order_id, $key) {
+function commerce_sagepay_server_handle_callback($order_id, $key,
+                                                 $debug_vps = array()) {
   $notification = array();
+
   $order = commerce_order_load($order_id);
 
+  $payment_key = $order->data['payment_redirect_key'];
+
   // Check key against supplied value.
-  if (!$order->data['payment_redirect_key'] === $key) {
+  if (!$payment_key === $key) {
     $notification['status'] = 'INVALID';
     $notification['message'] = t('Payment Redirect key did not match.');
   }
 
-  if (empty($_POST)) {
+  // The function gives us the ability to load in a fake POST dataset for
+  // testing purposes. If this is not present, use the $_POST values.
+  if (empty($debug_vps)) {
+    $vps_data = $_POST;
+  }
+
+  if (empty($vps_data)) {
     $notification['status'] = 'ERROR';
     $notification['message'] = t('No Payload returned in the notification POST.');
+    watchdog('commerce_sagepay', 'VPS Callback URL accessed with no POST data
+    submitted.', array(), WATCHDOG_WARNING);
   }
+
   if (empty($notification)) {
-    $transactions = commerce_payment_transaction_load_multiple(array(), array('order_id' => $order->order_id));
-    foreach ($transactions as $transaction) {
-      if ($transaction->payload['VendorTxCode'] == $_POST["VendorTxCode"]) {
-        // Check we have the correct transaction.
-        $transaction->payload = $transaction->payload + $_POST;
-        $payment_method = $transaction->payment_method;
 
-        // Check for tampering.
-        // Empty as we already know the amount in this scenario.
-        $charge = array();
+    // Load transactions with a matching order id, remote transaction id
+    // and the status "Started".
+    // We need to load the original transaction to identify the charge total.
+    $conditions = array('order_id' => $order_id, 'remote_id' => $vps_data['VPSTxId'],
+                        'remote_status' => 'STARTED');
 
-        $md5_check = array();
+    $transactions = commerce_payment_transaction_load_multiple(array(),
+      $conditions);
 
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["VPSTxId"]) ? $_REQUEST["VPSTxId"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["VendorTxCode"]) ? $_REQUEST["VendorTxCode"] : '', "VendorTxCode");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["Status"]) ? $_REQUEST["Status"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["TxAuthNo"]) ? $_REQUEST["TxAuthNo"] : '', "Number");
-        $md5_check[] = variable_get(SAGEPAY_SETTING_VENDOR_NAME);
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["AVSCV2"]) ? $_REQUEST["AVSCV2"] : '', "Text");
-        $md5_check[] = $transaction->payload['SecurityKey'];
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["AddressResult"]) ? $_REQUEST["AddressResult"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["PostCodeResult"]) ? $_REQUEST["PostCodeResult"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["CV2Result"]) ? $_REQUEST["CV2Result"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["GiftAid"]) ? $_REQUEST["GiftAid"] : '', "Number");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["3DSecureStatus"]) ? $_REQUEST["3DSecureStatus"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["CAVV"]) ? $_REQUEST["CAVV"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["AddressStatus"]) ? $_REQUEST["AddressStatus"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["PayerStatus"]) ? $_REQUEST['PayerStatus'] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["CardType"]) ? $_REQUEST["CardType"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["Last4Digits"]) ? $_REQUEST["Last4Digits"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["DeclineCode"]) ? $_REQUEST["DeclineCode"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["ExpiryDate"]) ? $_REQUEST["ExpiryDate"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["FraudResponse"]) ? $_REQUEST["FraudResponse"] : '', "Text");
-        $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["BankAuthCode"]) ? $_REQUEST["BankAuthCode"] : '', "Text");
+    // We expect a transaction to be found, so fail if there isn't one.
+    if (empty($transactions)) {
+      $notification['status'] = 'INVALID';
+      $notification['message'] = t('No matching transaction found');
+      watchdog('commerce_sagepay', 'No Matching transaction found in Sage
+      Pay Server VPS Callback for order %order_id', array('%order_id' => $order_id), WATCHDOG_ERROR);
+    }
 
-        $str_vpssignature = _commerce_sagepay_clean_input($_REQUEST["VPSSignature"], "Text");
-        $str_message = implode('', $md5_check);
-        $str_mysignature = strtoupper(md5($str_message));
+    // We expect only ONE transaction to be found, so fail if there are more.
+    if (count($transactions) > 1) {
+      $notification['status'] = 'INVALID';
+      $notification['message'] = t('Multiple matching transaction found');
+      watchdog('commerce_sagepay', 'Multiple matching transaction found in
+      Sage Pay Server VPS Callback for order %order_id',
+        array('%order_id' =>$order_id), WATCHDOG_ERROR);
+    }
 
-        if ($str_mysignature == $str_vpssignature) {
-          $transaction->payload['vps_status'] = $_POST['Status'];
-          switch ($_POST['Status']) {
-            case 'OK':
-              watchdog('commerce_sagepay', 'OK Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $transaction->payload['Status']));
-              commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_SUCCESS, SAGEPAY_REMOTE_STATUS_PAYMENT, $transaction);
-              $notification['status'] = 'OK';
-              $notification['message'] = t('Transaction notification received.');
-              break;
+    // Verify the transaction.
+    $transaction_values = array_values($transactions);
+    $transaction = $transaction_values[0];
 
-            case 'NOTAUTHED':
-              watchdog('commerce_sagepay', 'NOTAUTHED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
-              commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
-              $notification['status'] = 'OK';
-              $notification['cancel'] = TRUE;
-              break;
+    if ($transaction->payload['VendorTxCode'] ==
+      $vps_data["VendorTxCode"]) {
 
-            case 'REJECTED':
-              watchdog('commerce_sagepay', 'REJECTED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
-              commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
-              $notification['status'] = 'OK';
-              $notification['cancel'] = TRUE;
-              break;
+      // Check we have the correct transaction.
+      $payment_method = $transaction->payment_method;
 
-            case 'ABORT':
-              watchdog('commerce_sagepay', 'ABORT error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
-              commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
-              $notification['status'] = 'OK';
-              $notification['cancel'] = TRUE;
-              break;
+      // Get the total and currency from the original transaction.
+      $charge = array('amount' => $transaction->amount,
+                      'currency_code' => $transaction->currency_code);
 
-            case 'FAIL':
-              watchdog('commerce_sagepay', 'FAIL error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ERROR);
-              commerce_sagepay_transaction($payment_method, $order, $charge, $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
-              $notification['status'] = 'OK';
-              $notification['cancel'] = TRUE;
-              break;
+      // Check for tampering.
+      $md5_check = array();
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["VPSTxId"]) ? $_REQUEST["VPSTxId"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["VendorTxCode"]) ? $_REQUEST["VendorTxCode"] : '', "VendorTxCode");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["Status"]) ? $_REQUEST["Status"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["TxAuthNo"]) ? $_REQUEST["TxAuthNo"] : '', "Number");
+      $md5_check[] = variable_get(SAGEPAY_SETTING_VENDOR_NAME);
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["AVSCV2"]) ? $_REQUEST["AVSCV2"] : '', "Text");
+      $md5_check[] = $transaction->payload['SecurityKey'];
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["AddressResult"]) ? $_REQUEST["AddressResult"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["PostCodeResult"]) ? $_REQUEST["PostCodeResult"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["CV2Result"]) ? $_REQUEST["CV2Result"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["GiftAid"]) ? $_REQUEST["GiftAid"] : '', "Number");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["3DSecureStatus"]) ? $_REQUEST["3DSecureStatus"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["CAVV"]) ? $_REQUEST["CAVV"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["AddressStatus"]) ? $_REQUEST["AddressStatus"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["PayerStatus"]) ? $_REQUEST['PayerStatus'] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["CardType"]) ? $_REQUEST["CardType"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["Last4Digits"]) ? $_REQUEST["Last4Digits"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["DeclineCode"]) ? $_REQUEST["DeclineCode"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["ExpiryDate"]) ? $_REQUEST["ExpiryDate"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["FraudResponse"]) ? $_REQUEST["FraudResponse"] : '', "Text");
+      $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["BankAuthCode"]) ? $_REQUEST["BankAuthCode"] : '', "Text");
 
-          }
+      $str_vpssignature = _commerce_sagepay_clean_input($_REQUEST["VPSSignature"], "Text");
+      $str_message = implode('', $md5_check);
+      $str_mysignature = strtoupper(md5($str_message));
+      if ($str_mysignature == $str_vpssignature) {
+        $transaction->payload['vps_status'] = $vps_data['Status'];
 
+        switch ($vps_data['Status']) {
+          case 'OK':
+            watchdog('commerce_sagepay', 'OK Payment callback received from
+            SagePay for order %order_id with status code %status',
+              array('%order_id' => $order_id,
+                    '%status' => $transaction->payload['Status']));
+            commerce_sagepay_transaction($payment_method, $order, $charge,
+              $vps_data,
+              COMMERCE_PAYMENT_STATUS_SUCCESS, SAGEPAY_REMOTE_STATUS_PAYMENT,
+           $transaction);
 
+            $notification['status'] = 'OK';
+            $notification['message'] = t('Transaction notification received.');
+            break;
 
+          case 'NOTAUTHED':
+            watchdog('commerce_sagepay', 'NOTAUTHED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
+            commerce_sagepay_transaction($payment_method, $order,
+              $charge, $vps_data,
+              COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+            $notification['status'] = 'OK';
+            $notification['message'] = $transaction->payload['StatusDetail'];
+            $notification['cancel'] = TRUE;
+            break;
+
+          case 'REJECTED':
+            watchdog('commerce_sagepay', 'REJECTED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
+            commerce_sagepay_transaction($payment_method, $order,
+              $charge, $vps_data, COMMERCE_PAYMENT_STATUS_FAILURE,
+              SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+            $notification['status'] = 'OK';
+            $notification['message'] = $transaction->payload['StatusDetail'];
+            $notification['cancel'] = TRUE;
+            break;
+
+          case 'ABORT':
+            watchdog('commerce_sagepay', 'ABORT error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ALERT);
+            commerce_sagepay_transaction($payment_method, $order,
+              $charge, $vps_data, COMMERCE_PAYMENT_STATUS_FAILURE,
+              SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+            $notification['status'] = 'OK';
+            $notification['message'] = $transaction->payload['StatusDetail'];
+            $notification['cancel'] = TRUE;
+            break;
+
+          case 'FAIL':
+            watchdog('commerce_sagepay', 'FAIL error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ERROR);
+            commerce_sagepay_transaction($payment_method, $order,
+              $charge, $vps_data, COMMERCE_PAYMENT_STATUS_FAILURE,
+              SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+            $notification['status'] = 'OK';
+            $notification['message'] = $transaction->payload['StatusDetail'];
+            $notification['cancel'] = TRUE;
+            break;
+
+          default:
+            watchdog('commerce_sagepay', 'Unknown error from SagePay for order
+            %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $transaction->payload['StatusDetail']), WATCHDOG_ERROR);
+            commerce_sagepay_transaction($payment_method, $order,
+              $charge, $vps_data, COMMERCE_PAYMENT_STATUS_FAILURE,
+              SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+            $notification['status'] = 'OK';
+            $notification['message'] = 'Unexpected Status code received: ' . $vps_data['Status'];
+            $notification['cancel'] = TRUE;
         }
-        else {
-          $transaction->payload['vps_status'] = 'TAMPER';
-          $transaction->remote_status = 'TAMPER';
-          $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
-          commerce_sagepay_transaction($payment_method, $order, array(), $transaction->payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
-          $notification['status'] = 'INVALID';
-          $notification['message'] = t('MD5 did not match - signs of tampering
-          .');
-        }
 
-        commerce_payment_transaction_save($transaction);
-        break;
+
 
       }
+      else {
+        $payload = $transaction->payload;
+        $payload['vps_status'] = 'TAMPER';
+        commerce_sagepay_transaction($payment_method, $order, array(),
+          $payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+        $notification['status'] = 'INVALID';
+        $notification['message'] = t('MD5 did not match - signs of tampering
+          .');
+      }
+    } else {
+      $payload = $transaction->payload;
+      $payload['vps_status'] = 'TAMPER';
+      commerce_sagepay_transaction($payment_method, $order, array(),
+        $payload, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL, $transaction);
+      $notification['status'] = 'INVALID';
+      $notification['message'] = t('Vendor TX code did not match - signs of
+      tampering
+          .');
     }
   }
-
   // Send response back to SagePay to indicate we have received and processed.
   $eoln = chr(13) . chr(10);
-  if (array_key_exists('cancel', $notification)) {
-    commerce_payment_redirect_pane_previous_page($order);
 
+  if (array_key_exists('cancel', $notification)) {
     $notification['redirect'] =   url
-    ('checkout/' .
-    $order->order_id. '/payment/cancel/' .
-    $order->data['payment_redirect_key'], array('absolute' => TRUE));
+    ('checkout/' . $order_id . '/payment/back/' . $payment_key,
+      array('absolute' => TRUE));
   } else {
     $notification['redirect'] =   url
     ('checkout/' .
-    $order->order_id. '/payment/return/' . $order->data['payment_redirect_key'], array('absolute' => TRUE));
+      $order_id. '/payment/return/' . $payment_key,
+      array('absolute' => TRUE));
   }
 
-  $return_notification = 'Status=' . $notification_status . $eoln .
+  $return_notification = 'Status=' . $notification['status'] . $eoln .
     'RedirectURL=' . $notification['redirect'] . $eoln . 'StatusDetail=' .
-    $notification_status_detail . $eoln;
+    $notification['message'] . $eoln;
 
   echo $return_notification;
   exit;
-
 }
+
+

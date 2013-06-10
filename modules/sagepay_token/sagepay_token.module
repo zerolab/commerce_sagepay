@@ -62,6 +62,15 @@ function sagepay_token_commerce_payment_method_info_alter(&$payment_methods) {
         'charge callback' => 'sagepay_token_cardonfile_charge',
       );
   }
+  if (array_key_exists('commerce_sagepay_server', $payment_methods)) {
+    $payment_methods['commerce_sagepay_server']['cardonfile'] =
+      array(
+        'update callback' => 'sagepay_token_cardonfile_update',
+        'delete callback' => 'sagepay_token_cardonfile_delete',
+        'charge callback' => 'sagepay_token_cardonfile_charge',
+      );
+  }
+
 }
 
 /**
@@ -112,12 +121,13 @@ function sagepay_token_commerce_payment_transaction_presave($transaction) {
       // Check Card on file config settings for the a value allowing us to
       // store card on file with no user opt in.
 
-      global $user;
+      $order = commerce_order_load($transaction->order_id);
+      $uid = $order->uid;
 
-      if ($user->uid == 0) return FALSE;
+      if ($uid == 0) return FALSE;
 
       $card_data = array(
-        'uid' => $user->uid,
+        'uid' => $uid,
         'payment_method' => $transaction->payment_method,
         'instance_id' => $transaction->instance_id,
         'remote_id' => $transaction->payload['Token'],
@@ -135,7 +145,7 @@ function sagepay_token_commerce_payment_transaction_presave($transaction) {
 
       $card_entity = commerce_cardonfile_new($card_data);
       commerce_cardonfile_save($card_entity);
-
+      commerce_cardonfile_set_default_card($card_entity->card_id);
       return TRUE;
       break;
     default:
@@ -266,11 +276,15 @@ function sagepay_token_cardonfile_charge($payment_method, $card_data, $order, $c
   $response = _commerce_sagepay_request_post($server_url, $post);
 
   // Collect additional data to store in the transaction.
-  $response['Last4Digits'] = substr($pane_values['credit_card']['number'], 12, 16);
-  $response['ExpMonth'] = $pane_values['credit_card']['exp_month'];
-  $response['ExpYear'] = $pane_values['credit_card']['exp_year'];
-  $response['cardonfile_store'] = isset($pane_values['credit_card']['cardonfile_store']) ? $pane_values['credit_card']['cardonfile_store'] : '0';
-  $response['CardType'] = $pane_values['credit_card']['type'];
+  if (isset($pane_values['credit_card'])) {
+    $response['Last4Digits'] = substr
+    ($pane_values['credit_card']['number'], 12, 16);
+    $response['ExpMonth'] = $pane_values['credit_card']['exp_month'];
+    $response['ExpYear'] = $pane_values['credit_card']['exp_year'];
+    $response['cardonfile_store'] = isset($pane_values['credit_card']['cardonfile_store']) ? $pane_values['credit_card']['cardonfile_store'] : '0';
+    $response['CardType'] = $pane_values['credit_card']['type'];
+  }
+
   $response['Amount'] = $wrapper->commerce_order_total->amount->value();
 
   $result = commerce_sagepay_process_response($payment_method, $order, $response);
