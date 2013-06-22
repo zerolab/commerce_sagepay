@@ -558,6 +558,14 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
             // Replace the card selection dropdown with one based on our
             // available cards.
             $form['commerce_payment']['payment_details']['credit_card']['type']['#options'] = _commerce_sagepay_populate_card_names($enabled_cards);
+
+            // Disable compulsory start date field as not every card has a
+            // start date.
+            array_unshift($form['commerce_payment']['payment_details']['credit_card']['start_month']['#options'], '-');
+            $form['commerce_payment']['payment_details']['credit_card']['start_month']['#required'] = FALSE;
+            array_unshift($form['commerce_payment']['payment_details']['credit_card']['start_year']['#options'], '-');
+            $form['commerce_payment']['payment_details']['credit_card']['start_year']['#required'] = FALSE;
+
           }
         }
       }

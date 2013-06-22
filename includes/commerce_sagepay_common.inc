@@ -466,7 +466,14 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       $query['CardHolder'] = $billing_name['first_name'] . ' ' . $billing_name['last_name'];
       $query['CardNumber'] = $pane_values['credit_card']['number'];
       $query['ExpiryDate'] = $pane_values['credit_card']['exp_month'] . substr($pane_values['credit_card']['exp_year'], 2, 2);
-      $query['StartDate'] = $pane_values['credit_card']['start_month'] . substr($pane_values['credit_card']['start_year'], 2, 2);
+
+      // Check if a start date was entered as we have removed the required
+      // field flag.
+      if ($pane_values['credit_card']['start_month'] != '0' &&
+        $pane_values['credit_card']['start_year'] != '0') {
+        $query['StartDate'] = $pane_values['credit_card']['start_month'] . substr($pane_values['credit_card']['start_year'], 2, 2);
+      }
+
       $issue_number = isset($query['IssueNumber']) ? $query['IssueNumber'] : '';
       if ($issue_number != '') {
         $query['IssueNumber'] = str_pad($pane_values['credit_card']['issue'], 2, '0', STR_PAD_LEFT);
