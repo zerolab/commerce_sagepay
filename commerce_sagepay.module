@@ -214,22 +214,6 @@ function commerce_sagepay_commerce_payment_method_info() {
 }
 
 /**
- * Implements hook_init().
- *
- * Add the break of out iframe js when on the checkout complete page.
- */
-function commerce_sagepay_init() {
-  // Add iFrame escape javascript if the page is checkout/x/complete.
-  $url = explode('/', $_GET['q']);
-  if (count($url) > 2) {
-    if ($url[0] == 'checkout' && $url[2] == 'complete') {
-      drupal_add_js(drupal_get_path('module', 'commerce_sagepay') . '/js/commerce_sagepay_server_iframe.js');
-    }
-  }
-}
-
-
-/**
  * Determines access to the prior authorization release form for SagePay.
  *
  * @param commerce_order $order
@@ -530,11 +514,11 @@ function commerce_sagepay_repeat_deferred_access($order, $transaction) {
 function commerce_sagepay_page_build($page) {
   $url = explode('/', current_path());
   if (count($url) > 2) {
-    if ($url[0] == 'checkout' && in_array($url[2], array('review', 'complete'))) {
-      drupal_add_js(drupal_get_path('module', 'commerce_sagepay') . '/js/commerce_sagepay_server_iframe.js');
+    if ($url[0] == 'checkout') {
+      drupal_add_js(drupal_get_path('module', 'commerce_sagepay') .
+      '/js/commerce_sagepay_server_iframe.js', array('type' => 'file', 'scope' => 'header', 'weight' => -100));
     }
   }
-
 }
 
 /**
