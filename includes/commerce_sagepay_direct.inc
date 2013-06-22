@@ -148,6 +148,7 @@ function commerce_sagepay_direct_submit_form_submit($payment_method, $pane_form,
   $response['ExpMonth'] = $pane_values['credit_card']['exp_month'];
   $response['ExpYear'] = $pane_values['credit_card']['exp_year'];
   $response['cardonfile_store'] = isset($pane_values['credit_card']['cardonfile_store']) ? $pane_values['credit_card']['cardonfile_store'] : '0';
+  $response['cardonfile_instance_default'] = isset($pane_values['cardonfile_instance_default']) ? $pane_values['cardonfile_instance_default'] : '0';
   $response['CardType'] = $pane_values['credit_card']['type'];
   $response['Amount'] = $wrapper->commerce_order_total->amount->value();
 

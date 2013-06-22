@@ -145,7 +145,9 @@ function sagepay_token_commerce_payment_transaction_presave($transaction) {
 
       $card_entity = commerce_cardonfile_new($card_data);
       commerce_cardonfile_save($card_entity);
-      commerce_cardonfile_set_default_card($card_entity->card_id);
+      if ($transaction->payload['cardonfile_instance_default']) {
+        commerce_cardonfile_set_default_card($card_entity->card_id);
+      }
       return TRUE;
       break;
     default:
