@@ -278,13 +278,14 @@ function commerce_sagepay_repeat_process_transaction($order, $charge) {
 
   // Set up a new transaction ready to take the repeat payment.
   $int_random_number = rand(0, 32000) * rand(0, 32000);
-  $repeat_transaction_id = 'REPEAT_' . $transaction->order_id . '_' . $int_random_number;
+  $repeat_transaction_id = 'REPEAT_' . $original_transaction->order_id . '_'
+    . $int_random_number;
   $query = array(
     'VPSProtocol'         => SAGEPAY_PROTOCOL,
     'TxType'              => 'REPEAT',
     'Vendor'              => variable_get(SAGEPAY_SETTING_VENDOR_NAME),
     'VendorTxCode'        => $repeat_transaction_id,
-    'Amount'              => $charge['amount'],
+    'Amount'              => $charge['amount']/100,
     'Currency'            => $original_transaction->currency_code,
     'Description'         => t('Repeat payment against order %order_id', array('%order_id' => $original_transaction->order_id)),
     'RelatedVPSTxId'      => $original_transaction->remote_id,
