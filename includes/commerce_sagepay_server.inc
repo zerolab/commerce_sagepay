@@ -158,8 +158,58 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
       drupal_goto('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key']);
       break;
   }
+}
 
+/**
+ * Validate payment by checking status of last transaction.
+ *
+ * @param commerce_order $order
+ *  The Commerce Order.
+ * @param array $payment_method
+ *  The payment method.
+ * @return bool
+ *  Return TRUE if the form validates.
+ */
+function commerce_sagepay_server_redirect_form_validate($order, $payment_method) {
+  $return = FALSE;
+  $transactions = commerce_payment_transaction_load_multiple(array(), array('order_id' => $order->order_id));
+  if (count($transactions) > 0) {
+    $transaction = end($transactions);
+    $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
 
+    $failure_message = t('There was a problem processing your transaction. Your credit/debit card was not charged. Please try again later.');
+    switch ($transaction->payload['vps_status']) {
+      case 'OK':
+        $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+        $return = TRUE;
+        break;
+
+      case 'TAMPER':
+        drupal_set_message(check_plain($failure_message), 'error');
+        break;
+
+      case 'NOTAUTHED';
+        drupal_set_message(check_plain($failure_message), 'error');
+        break;
+
+      case 'REJECTED':
+        drupal_set_message(check_plain($failure_message), 'error');
+        break;
+
+      case 'ABORT':
+        break;
+
+      case 'ERROR':
+      case 'FAIL':
+      case 'FAIL2':
+      case 'UNKNOWN':
+        drupal_set_message(check_plain($failure_message), 'error');
+        break;
+    }
+    commerce_payment_transaction_save($transaction);
+  }
+
+  return $return;
 }
 
 /**
