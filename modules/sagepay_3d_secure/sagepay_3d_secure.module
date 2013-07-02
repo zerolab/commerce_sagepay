@@ -257,7 +257,14 @@ function sagepay_3d_secure_callback($order_number) {
   if ($success) {
     $checkout_pages = commerce_checkout_pages();
     $next_step = $checkout_pages['3d_secure']['next_page'];
-    commerce_order_status_update($order, 'checkout_' . $next_step);
+
+    $order = commerce_order_status_update($order, 'checkout_' . $next_step);
+
+    // Inform modules of checkout completion if the next page is Completed.
+    if ($next_step == 'complete') {
+      commerce_checkout_complete($order);
+    }
+
     $redirect = 'checkout/' . $order->order_number . '/' . $next_step;
   }
   else {
