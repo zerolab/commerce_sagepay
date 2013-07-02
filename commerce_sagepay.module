@@ -563,9 +563,16 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
 
             // Disable compulsory start date field as not every card has a
             // start date.
-            array_unshift($form['commerce_payment']['payment_details']['credit_card']['start_month']['#options'], '-');
+            $empty_option = array(0 => '-');
+						$start_months = $form['commerce_payment']['payment_details']['credit_card']['start_month']['#options'];
+						$start_years = $form['commerce_payment']['payment_details']['credit_card']['start_year']['#options'];
+
+						$form['commerce_payment']['payment_details']['credit_card']['start_month']['#options'] = $empty_option + $start_months;
+						$form['commerce_payment']['payment_details']['credit_card']['start_month']['#default_value'] = 0;
             $form['commerce_payment']['payment_details']['credit_card']['start_month']['#required'] = FALSE;
-            array_unshift($form['commerce_payment']['payment_details']['credit_card']['start_year']['#options'], '-');
+
+						$form['commerce_payment']['payment_details']['credit_card']['start_year']['#options'] = $empty_option + $start_years;
+						$form['commerce_payment']['payment_details']['credit_card']['start_year']['#default_value'] = 0;
             $form['commerce_payment']['payment_details']['credit_card']['start_year']['#required'] = FALSE;
 
           }
