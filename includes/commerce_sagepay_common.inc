@@ -221,7 +221,8 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
     case 'REJECTED':
       watchdog('commerce_sagepay', 'REJECTED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
       commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
-      drupal_set_message(t('Your transaction was rejected.'), 'error');
+      drupal_set_message(t('Your transaction was rejected. Reason: 3D-Authentication failed.'), 'warning');
+      commerce_order_status_update($order, 'checkout_review');
       return FALSE;
 
     case 'MALFORMED':
