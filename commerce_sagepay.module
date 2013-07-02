@@ -549,7 +549,11 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
       if (commerce_checkout_page_load(substr($form_id, 23))) {
         // And the current page's form includes the payment checkout pane...
         if (!empty($form['commerce_payment'])) {
-          $enabled_cards = variable_get(SAGEPAY_SETTING_ENABLED_CARDS);
+					// get a list of the currently enabled cards
+          $enabled_cards = _commerce_sagepay_populate_card_names(variable_get(SAGEPAY_SETTING_ENABLED_CARDS));
+					// if there are nio enabled cards, then get all available cards
+					if (empty($enabled_cards)) $enabled_cards = _commerce_sagepay_all_card_names();
+					
           $card_images = theme_commerce_sagepay_card_logos(array('enabled_cards' => $enabled_cards));
           $payment_details = $form['commerce_payment']['payment_details'];
           if (array_key_exists('credit_card', $payment_details)) {
@@ -559,7 +563,7 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
 
             // Replace the card selection dropdown with one based on our
             // available cards.
-            $form['commerce_payment']['payment_details']['credit_card']['type']['#options'] = _commerce_sagepay_populate_card_names($enabled_cards);
+            $form['commerce_payment']['payment_details']['credit_card']['type']['#options'] = $enabled_cards;
 
             // Disable compulsory start date field as not every card has a
             // start date.
@@ -613,10 +617,10 @@ function theme_commerce_sagepay_card_logos($enabled_cards) {
     return '<div />';
   }
   $output = '<div class="card_type_images">';
-  foreach ($enabled_cards['enabled_cards'] as $c) {
-    if ($c != '0') {
+  foreach ($enabled_cards['enabled_cards'] as $card => $name) {
+    if ($name != '0') {
       $output .= '<img src="/' . drupal_get_path('module',
-        'commerce_sagepay') . '/img/' . $c . '.png" /> &nbsp;';
+        'commerce_sagepay') . '/img/' . $card . '.png" /> &nbsp;';
     }
   }
   $output .= '</div>';
