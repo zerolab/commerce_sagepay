@@ -234,7 +234,9 @@ function commerce_sagepay_release_access($order, $transaction) {
     return FALSE;
   }
 
-  if ($transaction->remote_status != SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED) {
+  if ($transaction->remote_status != SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED
+    && $transaction->remote_status != SAGEPAY_REMOTE_STATUS_DEFERRERED
+  ) {
     return FALSE;
   }
 
