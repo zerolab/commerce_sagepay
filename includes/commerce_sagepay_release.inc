@@ -101,6 +101,14 @@ function commerce_sagepay_release_form_submit($form, &$form_state) {
   $transaction = $form_state['transaction'];
   $amount = $form_state['values']['amount'];
 
+  commerce_sagepay_release_transaction($transaction, $amount);
+
+  $form_state['redirect'] = 'admin/commerce/orders/' . $form_state['order']->order_id . '/payment';
+
+}
+
+function commerce_sagepay_release_transaction($transaction, $amount) {
+
   // Set up a new transaction id for the release transaction.
   $int_random_number = rand(0, 32000) * rand(0, 32000);
   $release_transaction_id = $transaction->order_id . '_' . $int_random_number;
@@ -160,12 +168,10 @@ function commerce_sagepay_release_form_submit($form, &$form_state) {
   $transaction->message = $transaction_message;
   $transaction->message_variables
     = array(
-      '@status'       => $response['Status'],
-      '@statusdetail' => $response['StatusDetail'],
-    );
+    '@status'       => $response['Status'],
+    '@statusdetail' => $response['StatusDetail'],
+  );
 
   commerce_payment_transaction_save($transaction);
-
-  $form_state['redirect'] = 'admin/commerce/orders/' . $form_state['order']->order_id . '/payment';
 
 }
