@@ -163,6 +163,7 @@ function commerce_sagepay_rules_action_info() {
       'execute' => 'commerce_sagepay_remove_overrides',
     ),
     'group' => t('Commerce SagePay'),
+  );
 
   $actions['commerce_sagepay_repeat_charge_card'] = array(
     'label' => t('Charge an order using a repeat payment'),
@@ -189,9 +190,45 @@ function commerce_sagepay_rules_action_info() {
     'callbacks' => array(
       'execute' => 'commerce_sagepay_rules_action_repeat_charge_card',
     ),
-  ),
+  );
 
-);
+  $actions['commerce_sagepay_cancel_order_transaction'] = array(
+    'label' => t('Cancel Order Transactions'),
+    'parameter' => array(
+      'order' => array(
+        'type' => 'commerce_order',
+        'label' => t('Order'),
+      ),
+      'transaction_type' => array(
+        'type' => 'text',
+        'label' => t('Transaction Type'),
+        'options list' => 'commerce_sagepay_transaction_type_list',
+      ),
+    ),
+    'callbacks' => array(
+      'execute' => 'commerce_sagepay_cancel_order_transaction',
+    ),
+    'group' => t('Commerce SagePay'),
+  );
+
+  $actions['commerce_sagepay_abort_order_transaction'] = array(
+    'label' => t('Abort Order Transactions'),
+    'parameter' => array(
+      'order' => array(
+        'type' => 'commerce_order',
+        'label' => t('Order'),
+      ),
+      'transaction_type' => array(
+        'type' => 'text',
+        'label' => t('Transaction Type'),
+        'options list' => 'commerce_sagepay_transaction_type_list',
+      ),
+    ),
+    'callbacks' => array(
+      'execute' => 'commerce_sagepay_abort_order_transaction',
+    ),
+    'group' => t('Commerce SagePay'),
+  );
 
   return $actions;
 }
@@ -392,4 +429,42 @@ function commerce_sagepay_rules_action_repeat_charge_card($order,
     'includes/commerce_sagepay_repeat');
   $response = commerce_sagepay_repeat_process_transaction($order, $charge);
   return array('charge_card_response' => $response);
+}
+
+/**
+ * Rules action callback for commerce_sagepay_cancel_transaction action
+ */
+function commerce_sagepay_cancel_order_transaction($order, $type=FALSE) {
+  module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_cancel');
+
+  $conditions = array('order_id' => $order->order_id);
+  $transactions = commerce_payment_transaction_load_multiple(array(), $conditions);
+  if (!empty($transactions)) {
+    foreach ($transactions as $transaction) {
+      if (!empty($type)) {
+        if ($type == $transaction->remote_status) {
+          commerce_sagepay_cancel_transaction($transaction);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Rules action callback for commerce_sagepay_abort_transaction action
+ */
+function commerce_sagepay_abort_order_transaction($order, $type=FALSE) {
+  module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_abort');
+
+  $conditions = array('order_id' => $order->order_id);
+  $transactions = commerce_payment_transaction_load_multiple(array(), $conditions);
+  if (!empty($transactions)) {
+    foreach ($transactions as $transaction) {
+      if (!empty($type)) {
+        if ($type == $transaction->remote_status) {
+          commerce_sagepay_abort_transaction($transaction);
+        }
+      }
+    }
+  }
 }

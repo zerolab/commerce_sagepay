@@ -56,6 +56,20 @@ function commerce_sagepay_cancel_form($form, &$form_state, $order, $transaction)
 function commerce_sagepay_cancel_form_submit($form, &$form_state) {
   $transaction = $form_state['transaction'];
 
+  commerce_sagepay_cancel_transaction($transaction);
+
+  $form_state['redirect'] = 'admin/commerce/orders/' . $form_state['order']->order_id . '/payment';
+
+}
+
+
+/*
+ * Function to cancel an Order transaction
+ *
+ * @param $transaction
+ *    The transaction object
+ */
+function commerce_sagepay_cancel_transaction($transaction) {
   // Set up the query array to send to SagePay.
   $query = array(
     'VPSProtocol'  => SAGEPAY_PROTOCOL,
@@ -107,6 +121,5 @@ function commerce_sagepay_cancel_form_submit($form, &$form_state) {
       drupal_set_message(check_plain($response['StatusDetail']), 'error');
 
   }
-  $form_state['redirect'] = 'admin/commerce/orders/' . $form_state['order']->order_id . '/payment';
 
 }

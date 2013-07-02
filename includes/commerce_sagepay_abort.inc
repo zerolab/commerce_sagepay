@@ -59,6 +59,20 @@ function commerce_sagepay_abort_form_submit($form, &$form_state) {
 
   $transaction = $form_state['transaction'];
 
+  commerce_sagepay_abort_transaction($transaction);
+
+  $form_state['redirect'] = 'admin/commerce/orders/' . $form_state['order']->order_id . '/payment';
+
+}
+
+
+/*
+ * Function to abort an Order transaction (deferred)
+ *
+ * @param $transaction
+ *    The transaction object
+ */
+function commerce_sagepay_abort_transaction($transaction) {
   // Set up the SagePay query array.
   $query = array(
     'VPSProtocol'  => SAGEPAY_PROTOCOL,
@@ -111,7 +125,4 @@ function commerce_sagepay_abort_form_submit($form, &$form_state) {
       drupal_set_message(check_plain($response['StatusDetail']), 'error');
 
   }
-
-  $form_state['redirect'] = 'admin/commerce/orders/' . $form_state['order']->order_id . '/payment';
-
 }
