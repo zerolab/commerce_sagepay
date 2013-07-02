@@ -161,7 +161,7 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
   $transaction->message = $transaction_message;
   $transaction->message_variables
     = array(
-      '@status'        => $tokens['Status'],
+      '@status'        => isset($tokens['Status']) ? $tokens['Status'] : $transaction->status,
       '@statusdetail'  => isset($tokens['StatusDetail']) ? $tokens['StatusDetail'] : 'N/A',
       '@vpstxid'       => isset($tokens['VPSTxId']) ? $tokens['VPSTxId'] : 'N/A',
       '@authcode'      => isset($tokens['TxAuthNo']) ? $tokens['TxAuthNo'] : 'N/A',
@@ -180,6 +180,7 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
       '@declinecode'   => isset($tokens['DeclineCode']) ? $tokens['DeclineCode'] : 'N/A',
     );
   commerce_payment_transaction_save($transaction);
+  return $transaction;
 
 }
 
@@ -199,7 +200,8 @@ function commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
  *    Return TRUE is the payment was successful.
  *    Return FALSE if payment is rejected or fails for any reason.
  */
-function commerce_sagepay_process_response($payment_method, $order, $tokens) {
+function commerce_sagepay_process_response($payment_method, $order, $tokens,
+                                           $transaction = NULL) {
   // Default no charge for failed transactions.
   // (these values will not be in the callback for a failed or cancelled).
   $def_charge = array('amount' => 0, 'currency_code' => '');
@@ -208,38 +210,50 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
   switch ($tokens['Status']) {
     case 'ABORT':
       watchdog('commerce_sagepay', 'ABORT error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
-      commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
+      commerce_sagepay_transaction($payment_method, $order, $def_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL,
+      $transaction);
       drupal_set_message(t('Your SagePay transaction was aborted.'), 'error');
       return FALSE;
 
     case 'NOTAUTHED':
       watchdog('commerce_sagepay', 'NOTAUTHED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
-      commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
+      commerce_sagepay_transaction($payment_method, $order, $def_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL,
+      $transaction);
       drupal_set_message(t('Your transaction was not authorised.'), 'error');
       return FALSE;
 
     case 'REJECTED':
       watchdog('commerce_sagepay', 'REJECTED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
-      commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
+      commerce_sagepay_transaction($payment_method, $order, $def_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL,
+        $transaction);
       drupal_set_message(t('Your transaction was rejected. Reason: 3D-Authentication failed.'), 'warning');
       commerce_order_status_update($order, 'checkout_review');
       return FALSE;
 
     case 'MALFORMED':
       watchdog('commerce_sagepay', 'MALFORMED error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ALERT);
-      commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
+      commerce_sagepay_transaction($payment_method, $order, $def_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL,
+        $transaction);
       drupal_set_message(t('Sorry the transaction has failed.'), 'error');
       return FALSE;
 
     case 'INVALID':
       watchdog('commerce_sagepay', 'INVALID error from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ERROR);
-      commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
+      commerce_sagepay_transaction($payment_method, $order, $def_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL,
+        $transaction);
       drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
       return FALSE;
 
     case 'ERROR':
       watchdog('commerce_sagepay', 'System ERROR from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ERROR);
-      commerce_sagepay_transaction($payment_method, $order, $def_charge, $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL);
+      commerce_sagepay_transaction($payment_method, $order, $def_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL,
+        $transaction);
       drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
       return FALSE;
 
@@ -250,14 +264,23 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
         $arr_charge['amount'] = $tokens['Amount'];
         $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
       }
-      $transaction = NULL;
+      /* As we have already created a transaction, we no longer need to reset this and reload
+      $transaction = NULL; */
 
       // If 3D secure is in use, we may have to load a partial transaction.
       if (module_exists('sagepay_3d_secure')) {
         $transaction = sagepay_3d_secure_load_transaction($tokens, $order);
       }
 
-      commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_SUCCESS, SAGEPAY_REMOTE_STATUS_PAYMENT, $transaction);
+      $remote_status = SAGEPAY_REMOTE_STATUS_PAYMENT;
+      if (isset($transaction->remote_status)) {
+        if ($transaction->remote_status == 'DEFERRED') {
+          $remote_status = SAGEPAY_REMOTE_STATUS_DEFERRERED;
+        }
+      }
+
+      commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_SUCCESS, $remote_status, $transaction);
+
       break;
 
     case 'AUTHENTICATED':
@@ -266,7 +289,9 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
       $arr_charge['amount'] = $tokens['Amount'];
       $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
       watchdog('commerce_sagepay', 'AUTHENTICATED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
-      commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_AUTHENTICATE);
+      commerce_sagepay_transaction($payment_method, $order, $arr_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_PENDING,
+        SAGEPAY_REMOTE_STATUS_AUTHENTICATE, $transaction);
       break;
 
     case 'REGISTERED':
@@ -275,7 +300,9 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
       $arr_charge['amount'] = $tokens['Amount'];
       $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
       watchdog('commerce_sagepay', 'REGISTERED Payment callback received from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
-      commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_REGISTERED);
+      commerce_sagepay_transaction($payment_method, $order, $arr_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_PENDING,
+        SAGEPAY_REMOTE_STATUS_REGISTERED, $transaction);
       break;
 
     case '3DAUTH':
@@ -298,7 +325,9 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens) {
       $arr_charge['amount'] = $tokens['Amount'];
       $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
 
-      commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_PENDING, SAGEPAY_REMOTE_STATUS_3D_SECURE);
+      commerce_sagepay_transaction($payment_method, $order, $arr_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_PENDING,
+        SAGEPAY_REMOTE_STATUS_3D_SECURE, $transaction);
       break;
 
     default:

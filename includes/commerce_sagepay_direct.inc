@@ -140,6 +140,21 @@ function commerce_sagepay_direct_submit_form_submit($payment_method, $pane_form,
   }
   drupal_alter('sagepay_url', $server_url, $pane_values);
 
+  // Create a pending transaction that will be completed on return.
+  // Determine the correct remote status based on the transaction type.
+  switch($data['TxType']) {
+    case 'DEFERRED' :
+      $remote_status = 'DEFERRED';
+      break;
+    default :
+      $remote_status = 'PAYMENT';
+  }
+
+  $tokens = array();
+  $transaction = commerce_sagepay_transaction($payment_method, $order,
+    $charge, $tokens,
+    COMMERCE_PAYMENT_STATUS_PENDING, $remote_status);
+
   // Send post.
   $response = _commerce_sagepay_request_post($server_url, $post);
 
@@ -152,7 +167,8 @@ function commerce_sagepay_direct_submit_form_submit($payment_method, $pane_form,
   $response['CardType'] = $pane_values['credit_card']['type'];
   $response['Amount'] = $wrapper->commerce_order_total->amount->value();
 
-  $result = commerce_sagepay_process_response($payment_method, $order, $response);
+  $result = commerce_sagepay_process_response($payment_method, $order,
+    $response, $transaction);
 
   return $result;
 }
