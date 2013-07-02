@@ -389,9 +389,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
 
   // Add a default postcode if the address supplied didn't have one.
   // SagePay requires a postcode even if some countries do not have them.
-  if (!isset($billing_address['postal_code'])) {
-    $billing_address['postal_code'] = '0000';
-  }
+  $billing_address['postal_code'] = _commerce_sagepay_ensure_postal_code($billing_address);
 
   // Determine the transaction type based on the payment gateway settings.
   switch (variable_get(SAGEPAY_SETTING_TRANSACTION_TYPE)) {
@@ -528,12 +526,13 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       isset($delivery_address['first_name']) ? $delivery_address['first_name'] : NULL,
       isset($delivery_address['last_name']) ? $delivery_address['last_name'] : NULL
     );
+
     $query['DeliverySurname'] = $delivery_name['last_name'];
     $query['DeliveryFirstnames'] = $delivery_name['first_name'];
     $query['DeliveryAddress1'] = $delivery_address['thoroughfare'];
     $query['DeliveryAddress2'] = $delivery_address['premise'];
     $query['DeliveryCity'] = $delivery_address['locality'];
-    $query['DeliveryPostcode'] = $delivery_address['postal_code'];
+    $query['DeliveryPostcode'] = _commerce_sagepay_ensure_postal_code($delivery_address);
     $query['DeliveryCountry'] = $delivery_address['country'];
 
     if ($delivery_address['country'] == 'US' && $delivery_address['administrative_area']) {
@@ -583,6 +582,23 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   return $encoded_string;
 }
 
+/*
+ * Helper function to ensure that there is a valid postal code
+ *
+ * @param array $address
+ *    The address to extract the postal code from
+ *
+ * @param string $default
+ *    The default value to use when not found or empty
+ *
+ * @return string
+ */
+function _commerce_sagepay_ensure_postal_code($address, $key='postal_code', $default='0000') {
+  $value = isset($address[$key]) ? trim($address[$key]) : $default;
+  if (empty($value)) $value = $default;
+
+  return $value;
+}
 
 /**
  * Helper function for SagePay Form.
