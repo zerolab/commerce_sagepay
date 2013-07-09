@@ -166,9 +166,6 @@ function sagepay_token_cardonfile_update($form, $form_state, $payment_method, $c
  * Implements hook_cardonfile_delete().
  */
 function sagepay_token_cardonfile_delete($form, $form_state, $payment_method, $card_data) {
-  // @todo This doesn't work at the moment. SagePay is rejecting the request
-  // although it seems valid.
-  watchdog('sagepay', 'received request to remove token');
 
   $query = array();
   $query['VPSProtocol'] = SAGEPAY_PROTOCOL;
@@ -185,6 +182,8 @@ function sagepay_token_cardonfile_delete($form, $form_state, $payment_method, $c
       $url = SAGEPAY_TOKEN_REMOVE_TEST;
       break;
   }
+
+  $query = _commerce_sagepay_array_to_post($query);
   $response = _commerce_sagepay_request_post($url, $query);
 
   switch ($response['Status']) {
@@ -197,7 +196,7 @@ function sagepay_token_cardonfile_delete($form, $form_state, $payment_method, $c
       return FALSE;
   }
 
-  return TRUE;
+  return FALSE;
 
 }
 
