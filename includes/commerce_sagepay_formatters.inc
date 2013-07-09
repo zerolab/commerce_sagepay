@@ -26,25 +26,12 @@ function _commerce_sagepay_cart_to_xml($order) {
     $xml_doc->createElement("basket")
   );
 
-  $root->appendChild(
-    $xml_doc->createElement('agentId', 'Drupal Commerce')
-  );
-
   $order_lines = $order->commerce_line_items['und'];
-
-  // Set up a variable to count the total number of units in the order.
-  $total_items = 0;
 
   foreach ($order_lines as $line) {
 
     $line_item = commerce_line_item_load($line['line_item_id']);
     $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
-
-    // Check if this is a delivery line - we'll need this later.
-    $line_item_type = $line_item->type;
-    if ($line_item_type == 'shipping') {
-      $delivery_line = $line_item_wrapper;
-    }
 
     // Create an XML element for each order line.
     $linexml = $root->appendChild(
@@ -56,7 +43,8 @@ function _commerce_sagepay_cart_to_xml($order) {
     );
 
     $linexml->appendChild(
-      $xml_doc->createElement('quantity', $line_item->quantity)
+      $xml_doc->createElement('quantity', number_format($line_item->quantity,
+        0))
     );
 
     $total_items += $line_item->quantity;
@@ -76,134 +64,26 @@ function _commerce_sagepay_cart_to_xml($order) {
     $line_total = $arr_line_total['amount'] / 100;
 
     $linexml->appendChild(
-      $xml_doc->createElement('unitNetAmount', $item_value)
+      $xml_doc->createElement('unitNetAmount', number_format
+      ($item_value,  2, '.', ''))
     );
 
     $linexml->appendChild(
-      $xml_doc->createElement('unitTaxAmount', $item_tax)
+      $xml_doc->createElement('unitTaxAmount', number_format
+      ($item_tax,  2, '.', ''))
     );
 
     $linexml->appendChild(
-      $xml_doc->createElement('unitGrossAmount', $item_total)
+      $xml_doc->createElement('unitGrossAmount', number_format
+      ($item_total, 2, '.', ''))
     );
 
     $linexml->appendChild(
-      $xml_doc->createElement('totalGrossAmount', $line_total)
+      $xml_doc->createElement('totalGrossAmount',
+        number_format($line_total, 2, '.', ''))
     );
-
-    // Check if line has an attached shipping profile.
-    // Otherwise use the details from the order shipping profile.
-    if (isset($line_item_wrapper->commerce_customer_shipping)) {
-      $shipping_profile = $line_item_wrapper->commerce_customer_shipping;
-    }
-    elseif (isset($order_wrapper->commerce_customer_shipping)) {
-      $shipping_profile = $order_wrapper->commerce_customer_shipping;
-    }
-
-    // If we have no shipping profile, fall back to the billing address.
-    if (!isset($shipping_profile)) {
-      $shipping_profile = $order_wrapper->commerce_customer_billing;
-    }
-
-    // If we still have no address, skip this section of the XML.
-    if (isset($shipping_profile)) {
-      $address = $shipping_profile->commerce_customer_address->value();
-      $linexml->appendChild(
-        $xml_doc->createElement('recipientFName', $address['first_name'])
-      );
-
-      $linexml->appendChild(
-        $xml_doc->createElement('recipientLName', $address['last_name'])
-      );
-
-      // Middle name not used by default but could be added using a custom
-      // module hook.
-      $linexml->appendChild(
-        $xml_doc->createElement('recipientMName', '')
-      );
-
-      // Salutation not used by default but could be added using a custom
-      // module hook.
-      $linexml->appendChild(
-        $xml_doc->createElement('recipientSal', '')
-      );
-
-      // Email address specific to order not used by default but could be added
-      // using a custom module hook.
-      $linexml->appendChild(
-        $xml_doc->createElement('recipientEmail', '')
-      );
-
-      // Assuming there is a field called 'field_telephone' on the address which
-      // there isn't by default. If an alternative name field has been used, a
-      // custom module hook can be used to populate this.
-      $telephone = '';
-      if (isset($shipping_profile->field_telephone)) {
-        $telephone = $shipping_profile->field_telephone->value();
-      }
-
-      $linexml->appendChild(
-        $xml_doc->createElement('recipientPhone', $telephone)
-      );
-
-      $address = $shipping_profile->commerce_customer_address->value();
-      $linexml->appendChild(
-        $xml_doc->createElement('receipentAdd1', $address['thoroughfare'] . ' ' . $address['premise'])
-      );
-
-      $linexml->appendChild(
-        $xml_doc->createElement('recipientCity', $address['locality'])
-      );
-
-      $linexml->appendChild(
-        $xml_doc->createElement('recipientCountry', $address['country'])
-      );
-
-      $linexml->appendChild(
-        $xml_doc->createElement('recipientPostCode', $address['postal_code'])
-      );
-    }
 
   }
-
-  // Add the delivery totals if we found a delivery line earlier.
-  if (isset($delivery_line)) {
-    // Step through components to look for tax item.
-    $delivery_tax = 0;
-    // Check if there is a tax component.
-    $delivery_total = $delivery_line->commerce_total->value();
-
-    if (isset($delivery_total['data']['components'])) {
-      foreach ($delivery_total['data']['components'] as $c) {
-        if (strpos($c['name'], 'tax') === 0) {
-          $delivery_tax += $c['price']['amount'] / 100;
-        }
-      }
-    }
-
-    // Add Delivery info.
-    $root->appendChild(
-      $xml_doc->createElement("deliveryNetAmount", $delivery_total['data']['components'][0]['price']['amount'] / 100)
-    );
-
-    $root->appendChild(
-      $xml_doc->createElement("deliveryTaxAmount", $delivery_tax)
-    );
-
-    $root->appendChild(
-      $xml_doc->createElement("deliveryGrossAmount", $delivery_total['amount'] / 100)
-    );
-
-    $root->appendChild(
-      $xml_doc->createElement("shipId", '')
-    );
-    $root->appendChild(
-      $xml_doc->createElement("shippingMethod", $delivery_line->commerce_shipping_service->value())
-    );
-  }
-  $root->appendChild(
-    $xml_doc->createElement("totalNumItems", $total_items)
-  );
 
   /*
   * The remainder of this specification is industry specific.
@@ -211,9 +91,8 @@ function _commerce_sagepay_cart_to_xml($order) {
   */
   drupal_alter('commerce_sagepay_basket_xml', $xml_doc);
 
-  $xml_doc->formatOutput = FALSE;
+  $xml_doc->formatOutput = TRUE;
 
-  // @todo currently SagePay is rejecting this XML as invalid.
   return $xml_doc;
 }
 
