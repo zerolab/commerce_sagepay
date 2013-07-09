@@ -247,6 +247,7 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
         $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL,
         $transaction);
       drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
+      commerce_order_status_update($order, 'checkout_review');
       return FALSE;
 
     case 'ERROR':
