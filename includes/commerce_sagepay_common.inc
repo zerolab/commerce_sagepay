@@ -336,7 +336,7 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
       // Store the original remote status in the payload otherwise we lose it
       // when we change the remote status to 3D Secure.
       $tokens['original_remote_status'] = $transaction->remote_status;
-      
+
       commerce_sagepay_transaction($payment_method, $order, $arr_charge,
         $tokens, COMMERCE_PAYMENT_STATUS_PENDING,
         SAGEPAY_REMOTE_STATUS_3D_SECURE, $transaction);
@@ -740,8 +740,24 @@ function _commerce_sagepay_request_post($url, $data) {
   curl_setopt($curl_session, CURLOPT_POSTFIELDS, $data);
   curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, 1);
   curl_setopt($curl_session, CURLOPT_TIMEOUT, 30);
-  curl_setopt($curl_session, CURLOPT_SSL_VERIFYPEER, FALSE);
   curl_setopt($curl_session, CURLOPT_SSL_VERIFYHOST, 1);
+
+  /* Support for peer verification - as per https://drupal.org/node/1931760#comment-7365072
+
+    If you get an error related to peer verification, you may need to download a CA certificate
+    bundle file and place it in a safe location on your web server, and update your settings.php to set the
+    commerce_sagepay_cacert variable to contain the absolute path of the file.
+
+    Alternately, you may be able to update your php.ini to point to the file with the curl.cainfo setting.
+  */
+  $ca_cert_path = variable_get('commerce_sagepay_cacert', FALSE);
+  if (!empty($ca_cert_path)) {
+    curl_setopt($curl_session, CURLOPT_SSL_VERIFYPEER, 1);
+    curl_setopt($curl_session, CURLOPT_CAINFO, $ca_cert_path);
+  }
+  else {
+    curl_setopt($curl_session, CURLOPT_SSL_VERIFYPEER, 0);
+  }
 
   $rawresponse = curl_exec($curl_session);
   $response = explode(chr(10), $rawresponse);
