@@ -234,8 +234,8 @@ function commerce_sagepay_release_access($order, $transaction) {
     return FALSE;
   }
 
-  if ($transaction->remote_status != SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED
-    && $transaction->remote_status != SAGEPAY_REMOTE_STATUS_DEFERRERED
+  if ($transaction->remote_status != SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRED
+    && $transaction->remote_status != SAGEPAY_REMOTE_STATUS_DEFERRED
   ) {
     return FALSE;
   }
@@ -277,7 +277,7 @@ function commerce_sagepay_refund_access($order, $transaction) {
       SAGEPAY_REMOTE_STATUS_UNKNOWN,
       SAGEPAY_REMOTE_STATUS_REFUNDED,
       SAGEPAY_REMOTE_STATUS_REGISTERED,
-      SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED)
+      SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRED)
   )
   ) {
     return FALSE;
@@ -312,7 +312,7 @@ function commerce_sagepay_abort_access($order, $transaction) {
     return FALSE;
   }
 
-  if ($transaction->remote_status != SAGEPAY_REMOTE_STATUS_DEFERRERED && $transaction->remote_status != SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED) {
+  if ($transaction->remote_status != SAGEPAY_REMOTE_STATUS_DEFERRED && $transaction->remote_status != SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRED) {
     return FALSE;
   }
 
@@ -553,7 +553,7 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
           $enabled_cards = _commerce_sagepay_populate_card_names(variable_get(SAGEPAY_SETTING_ENABLED_CARDS));
 					// if there are nio enabled cards, then get all available cards
 					if (empty($enabled_cards)) $enabled_cards = _commerce_sagepay_all_card_names();
-					
+
           $card_images = theme_commerce_sagepay_card_logos(array('enabled_cards' => $enabled_cards));
           $payment_details = $form['commerce_payment']['payment_details'];
           if (array_key_exists('credit_card', $payment_details)) {

@@ -275,7 +275,7 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
       $remote_status = SAGEPAY_REMOTE_STATUS_PAYMENT;
       if (isset($transaction->remote_status)) {
         if ($transaction->remote_status == 'DEFERRED') {
-          $remote_status = SAGEPAY_REMOTE_STATUS_DEFERRERED;
+          $remote_status = SAGEPAY_REMOTE_STATUS_DEFERRED;
         }
       }
 

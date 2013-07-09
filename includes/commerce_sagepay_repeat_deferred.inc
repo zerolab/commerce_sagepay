@@ -145,7 +145,7 @@ function commerce_sagepay_repeat_deferred_form_submit($form, &$form_state) {
   $repeat_transaction->currency_code = $transaction->currency_code;
   $repeat_transaction->remote_id = $response['VPSTxId'];
   $repeat_transaction->payload = $response;
-  $repeat_transaction->remote_status = SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRERED;
+  $repeat_transaction->remote_status = SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRED;
 
   switch ($response['Status']) {
     case 'OK':
