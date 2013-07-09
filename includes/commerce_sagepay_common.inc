@@ -280,6 +280,13 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
         }
       }
 
+      // Check for the scenario where we stored the original requested remote
+      // status prior to 3d Secure.
+      if (isset($transaction->payload['original_remote_status'])) {
+        $remote_status = $transaction->payload['original_remote_status'];
+        unset($transaction->payload['original_remote_status']);
+      }
+
       commerce_sagepay_transaction($payment_method, $order, $arr_charge, $tokens, COMMERCE_PAYMENT_STATUS_SUCCESS, $remote_status, $transaction);
 
       break;
@@ -326,6 +333,10 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
       $arr_charge['amount'] = $tokens['Amount'];
       $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
 
+      // Store the original remote status in the payload otherwise we lose it
+      // when we change the remote status to 3D Secure.
+      $tokens['original_remote_status'] = $transaction->remote_status;
+      
       commerce_sagepay_transaction($payment_method, $order, $arr_charge,
         $tokens, COMMERCE_PAYMENT_STATUS_PENDING,
         SAGEPAY_REMOTE_STATUS_3D_SECURE, $transaction);
