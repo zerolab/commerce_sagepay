@@ -150,7 +150,10 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
   // Validation successful.
   // Create a transaction and associate it with the order.
   $charge = array();
-  $charge['amount'] = $tokens['Amount'] * 100;
+  $currency = commerce_currency_load($order->commerce_order_total['und'][0]['currency_code']);
+  $charge['amount'] = str_replace($currency['thousands_separator'], '' ,$tokens['Amount']);
+  $charge['amount'] = str_replace($currency['decimal_separator'], '.' ,$charge['amount']);
+  $charge['amount'] = $charge['amount'] *100;
   $charge['currency_code'] = $order->commerce_order_total['und'][0]['currency_code'];
 
   commerce_sagepay_transaction($payment_method, $order, $charge, $tokens,
