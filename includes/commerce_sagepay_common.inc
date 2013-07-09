@@ -321,6 +321,21 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
         SAGEPAY_REMOTE_STATUS_REGISTERED, $transaction);
       break;
 
+    case 'PPREDIRECT':
+      // Card type was PayPal and the server has responded with a PayPal
+      // redirect URL.
+      $arr_charge = array();
+      $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+      $arr_charge['amount'] = $tokens['Amount'];
+      $arr_charge['currency_code'] = $order_wrapper->commerce_order_total->currency_code->value();
+      watchdog('commerce_sagepay', 'REGISTERED PAYPAL Payment callback
+      received
+      from SagePay for order %order_id with status code %status', array('%order_id' => $order_id, '%status' => $tokens['Status']));
+      commerce_sagepay_transaction($payment_method, $order, $arr_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_PENDING,
+        SAGEPAY_REMOTE_STATUS_PAYPAL_REDIRECT);
+      break;
+
     case '3DAUTH':
       // Server has replied with a 3D Secure authentication request.
       // Store the returned variables in the order object for processing
@@ -541,6 +556,13 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
 
       break;
 
+    case SAGEPAY_PAYPAL:
+      $query['TxType'] = $tx_type;
+      $query['CardType'] = 'PAYPAL';
+      $query['PayPalCallbackURL'] = url('commerce-sagepay/paypal-callback/' .
+      $order->order_id, array('absolute' => TRUE));
+      break;
+
     case SAGEPAY_TOKEN:
       $query['TxType'] = $tx_type;
       $query['Token'] = $saved_card_data->remote_id;
@@ -607,7 +629,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
 
   // For Server mode, we can return the Array now before encryption.
   if (in_array($integration_method, array(SAGEPAY_SERVER, SAGEPAY_DIRECT,
-    SAGEPAY_TOKEN))) {
+    SAGEPAY_TOKEN, SAGEPAY_PAYPAL))) {
     return $query;
   }
 

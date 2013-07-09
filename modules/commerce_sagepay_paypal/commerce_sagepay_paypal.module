@@ -1,0 +1,88 @@
+<?php
+
+/**
+ * Implements hook_commerce_payment_method_info().
+ */
+function commerce_sagepay_paypal_commerce_payment_method_info() {
+  $payment_methods = array();
+
+  $payment_methods['commerce_sagepay_paypal'] = array(
+    'base' => 'commerce_sagepay_paypal',
+    'title' => t('SagePay PayPal Integration'),
+    'display_title' => t('PayPal'),
+    'short_title' => t('PayPal'),
+    'description' => t('Integration with PayPal using Sage Pay Direct.'),
+    'active' => FALSE,
+    'terminal' => FALSE,
+    'offsite' => TRUE,
+    'offsite_autoredirect' => TRUE,
+    'callbacks' => array(),
+    'file' => 'includes/commerce_sagepay_paypal.inc',
+  );
+  return $payment_methods;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function commerce_sagepay_paypal_menu() {
+  $items = array();
+
+  // Define a path to receive PayPal Callback).
+  $items['commerce-sagepay/paypal-callback/%'] = array(
+    'page callback' => 'commerce_sagepay_paypal_handle_callback',
+    'page arguments' => array(2),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/commerce_sagepay_paypal.inc',
+  );
+
+  return $items;
+}
+
+
+function commerce_sagepay_paypal_complete(){
+  $query = array();
+  $query['VPSProtocol'] = '2.23';
+  $query['TxType'] = 'COMPLETE';
+  $query['VPSTxId'] = $vps_transaction_id;
+  $query['Amount'] = $amount;
+  switch ($accept) {
+    case TRUE:
+        $query['Accept'] = 'YES';
+        break;
+    case FALSE:
+        $query['Accept'] = 'NO';
+  }
+
+  // Determine the correct url based on the transaction mode.
+  switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
+    case SAGEPAY_TXN_MODE_LIVE:
+      $server_url = SAGEPAY_DIRECT_SERVER_LIVE;
+      break;
+
+    case SAGEPAY_TXN_MODE_TEST:
+      $server_url = SAGEPAY_DIRECT_SERVER_TEST;
+      break;
+
+    case SAGEPAY_TXN_MODE_SHOWPOST:
+      $server_url = SAGEPAY_DIRECT_SERVER_SHOWPOST;
+      break;
+
+    case SAGEPAY_TXN_MODE_SIMULATION:
+      $server_url = SAGEPAY_DIRECT_SERVER_SIMULATION;
+      break;
+
+    default:
+      $server_url = SAGEPAY_DIRECT_SERVER_SIMULATION;
+
+  }
+  drupal_alter('sagepay_url', $server_url, $pane_values);
+
+  $response = _commerce_sagepay_request_post($url, $data);
+
+  commerce_sagepay_process_response($payment_mehtod, $order, $response);
+
+
+
+}

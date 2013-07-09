@@ -74,6 +74,9 @@ define('SAGEPAY_DIRECT_TOKEN_REGISTER_TEST', 'https://test.sagepay.com/gateway/s
 define('SAGEPAY_TOKEN_REMOVE_LIVE', 'https://live.sagepay.com/gateway/service/removetoken.vsp');
 define('SAGEPAY_TOKEN_REMOVE_TEST', 'https://test.sagepay.com/gateway/service/removetoken.vsp');
 
+define('SAGEPAY_PAYPAL_COMPLETION_TEST', 'https://test.sagepay.com/gateway/service/complete.vsp');
+define('SAGEPAY_PAYPAL_COMPLETION_LIVE', 'https://live.sagepay.com/gateway/service/complete.vsp');
+
 // Define settings variable names.
 define('SAGEPAY_SETTING_VENDOR_NAME', 'sagepay_vendor');
 define('SAGEPAY_SETTING_VENDOR_EMAIL', 'sagepay_vendor_email');
@@ -102,6 +105,7 @@ define('SAGEPAY_FORM', 'form');
 define('SAGEPAY_SERVER', 'server');
 define('SAGEPAY_DIRECT', 'direct');
 define('SAGEPAY_TOKEN', 'token');
+define('SAGEPAY_PAYPAL', 'paypal');
 
 // Define validation rule constants.
 define('SAGEPAY_VALIDATE_NAME', 'name');
@@ -123,3 +127,5 @@ define('SAGEPAY_REMOTE_STATUS_PAYMENT', 'PAYMENT');
 define('SAGEPAY_REMOTE_STATUS_REFUNDED', 'REFUNDED');
 define('SAGEPAY_REMOTE_STATUS_CANCELLED', 'CANCELLED');
 define('SAGEPAY_REMOTE_STATUS_3D_SECURE', '3DSECURE');
+define('SAGEPAY_REMOTE_STATUS_PAYPAL_REDIRECT', 'PPREDIRECT');
+
