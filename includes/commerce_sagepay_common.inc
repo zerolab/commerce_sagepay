@@ -258,6 +258,14 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
       drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
       return FALSE;
 
+    case 'FAIL':
+      watchdog('commerce_sagepay', 'System FAIL from SagePay for order %order_id with message %msg', array('%order_id' => $order_id, '%msg' => $tokens['StatusDetail']), WATCHDOG_ERROR);
+      commerce_sagepay_transaction($payment_method, $order, $def_charge,
+        $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL,
+        $transaction);
+      drupal_set_message(t('Sorry an error occurred while processing your transaction. %message', array('%message' => $tokens['StatusDetail'])), 'error');
+      return FALSE;
+
     case 'OK':
       $arr_charge = array();
       $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
