@@ -154,16 +154,8 @@ function commerce_sagepay_settings_form($form, &$form_state) {
   );
 
   $form['security'][SAGEPAY_SETTING_APPLY_3D_SECURE] = array(
-    '#type'          => 'radios',
-    '#title'         => t('3D Secure Mode'),
-    '#description'   => t('3D Secure mode used by default on all transactions.'),
-    '#options'       => array(
-      '0' => t('If 3D-Secure checks are possible and rules allow, perform the checks and apply the authorisation rules. (default)'),
-      '1' => t('Force 3D-Secure checks for this transaction if possible and apply rules for authorisation.'),
-      '2' => t('Do not perform 3D-Secure checks for this transaction and always authorise.'),
-      '3' => t('Force 3D-Secure checks for this transaction if possible but ALWAYS obtain an auth code, irrespective of rule base.'),
-    ),
-    '#default_value' => variable_get(SAGEPAY_SETTING_APPLY_3D_SECURE, 0),
+    '#type'          => 'item',
+    '#title'        => t('3D Secure module not enabled.'),
   );
 
   $form['order_settings'] = array(
