@@ -16,7 +16,9 @@ function commerce_sagepay_paypal_submit_form($payment_method, $pane_values,
  * Payment method callback: checkout form submission.
  */
 function commerce_sagepay_paypal_submit_form_validate($payment_method,
-                                                   $pane_form, $pane_values, &$order, $charge) {
+                                                      $pane_form,
+                                                      $pane_values,
+                                                      &$order, $charge) {
   // Wrap the order for easier access to data.
   $wrapper = entity_metadata_wrapper('commerce_order', $order);
 
@@ -26,7 +28,9 @@ function commerce_sagepay_paypal_submit_form_validate($payment_method,
   $total['amount'] = $wrapper->commerce_order_total->amount->value();
 
   // Load customer profile.
-  $profile = commerce_customer_profile_load($order->commerce_customer_billing[LANGUAGE_NONE][0]['profile_id']);
+  $profile = commerce_customer_profile_load(
+    $order->commerce_customer_billing[LANGUAGE_NONE][0]['profile_id']
+  );
 
   // Get user billing address.
   $billing_address = $profile->commerce_customer_address[LANGUAGE_NONE][0];
@@ -35,7 +39,9 @@ function commerce_sagepay_paypal_submit_form_validate($payment_method,
   $delivery_address = NULL;
 
   if (isset($order->commerce_customer_shipping)) {
-    $delivery_profile = commerce_customer_profile_load($order->commerce_customer_shipping[LANGUAGE_NONE][0]['profile_id']);
+    $delivery_profile = commerce_customer_profile_load(
+      $order->commerce_customer_shipping[LANGUAGE_NONE][0]['profile_id']
+    );
     $delivery_address = $delivery_profile->commerce_customer_address[LANGUAGE_NONE][0];
   }
 
@@ -167,8 +173,9 @@ function commerce_sagepay_paypal_handle_callback($order_id){
     if (empty($transactions)) {
       $notification['status'] = 'INVALID';
       $notification['message'] = t('No matching transaction found');
-      watchdog('commerce_sagepay', 'No Matching transaction found in Sage
-      Pay Server VPS Callback for order %order_id', array('%order_id' => $order_id), WATCHDOG_ERROR);
+      watchdog('commerce_sagepay', 'No Matching transaction found in
+        SagePay Server VPS Callback for order %order_id',
+        array('%order_id' => $order_id), WATCHDOG_ERROR);
     }
 
     // We expect only ONE transaction to be found, so fail if there are more.
@@ -176,7 +183,7 @@ function commerce_sagepay_paypal_handle_callback($order_id){
       $notification['status'] = 'INVALID';
       $notification['message'] = t('Multiple matching transaction found');
       watchdog('commerce_sagepay', 'Multiple matching transaction found in
-      Sage Pay Server VPS Callback for order %order_id',
+      SagePay Server VPS Callback for order %order_id',
         array('%order_id' =>$order_id), WATCHDOG_ERROR);
     }
 
@@ -185,7 +192,6 @@ function commerce_sagepay_paypal_handle_callback($order_id){
     $transaction = $transaction_values[0];
 
     $payment_method = $transaction->payment_method;
-
   }
 
   // Modify the transaction depending on the PayPal Status
@@ -226,7 +232,7 @@ function commerce_sagepay_paypal_handle_callback($order_id){
       $server_url = SAGEPAY_PAYPAL_COMPLETION_TEST;
       break;
   }
-  watchdog('debug', print_r($response_callback, 1));
+
   $query = _commerce_sagepay_array_to_post($response_callback);
 
   $response = _commerce_sagepay_request_post($server_url, $query);
@@ -237,8 +243,6 @@ function commerce_sagepay_paypal_handle_callback($order_id){
 
   // @todo need to get payment method.
 
-  watchdog('debug', print_r($response, 1));
-
   $result = commerce_sagepay_process_response($payment_method, $order, $response);
 
   $checkout_pages = commerce_checkout_pages();
@@ -246,7 +250,13 @@ function commerce_sagepay_paypal_handle_callback($order_id){
 
   if ($checkout_page['next_page']) {
     // Update the order status to reflect the next checkout page.
-    $order = commerce_order_status_update($order, 'checkout_' . $checkout_page['next_page'], FALSE, TRUE, t('Customer continued to the next checkout page via a submit button.'));
+    $order = commerce_order_status_update(
+      $order,
+      'checkout_' . $checkout_page['next_page'],
+      FALSE,
+      TRUE,
+      t('Customer continued to the next checkout page via a submit button.')
+    );
 
     // If it happens to be the complete page, process completion now.
     if ($checkout_page['next_page'] == 'complete') {
@@ -258,6 +268,6 @@ function commerce_sagepay_paypal_handle_callback($order_id){
     $checkout_page['next_page']);
   }
 
-  
+
 
 }
