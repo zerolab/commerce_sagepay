@@ -6,6 +6,7 @@
  */
 
 module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_constants');
+module_load_include('inc', 'commerce_sagepay', 'includes/commerce_sagepay_common');
 
 /**
  * Implements hook_form_commerce_sagepay_settings_form_alter().
@@ -229,7 +230,7 @@ function sagepay_token_cardonfile_charge($payment_method, $card_data, $order, $c
     $delivery_address = $delivery_profile->commerce_customer_address[LANGUAGE_NONE][0];
   }
 
-  $pane_values = array(); 
+  $pane_values = array();
 
   $pane_values['cardonfile'] = $card_data->card_id;
   $pane_values['commerce_recurring'] = TRUE;
