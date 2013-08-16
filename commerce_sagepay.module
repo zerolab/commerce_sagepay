@@ -674,7 +674,16 @@ function commerce_sagepay_theme($existing, $type, $theme, $path) {
   return array(
     'commerce_sagepay_card_logos' => array(
       'variables' => array(
-        'enabled_cards' => array()),
+        'enabled_cards' => array()
+      ),
+    ),
+    'commerce_sagepay_card_logo' => array(
+      'variables' => array(
+        'card' => NULL,
+        'name' => NULL,
+        'img' => NULL,
+        'href' => NULL,
+      ),
     ),
   );
 }
@@ -691,17 +700,61 @@ function commerce_sagepay_theme($existing, $type, $theme, $path) {
  * @return string
  *   A themed output of card logos.
  */
-function theme_commerce_sagepay_card_logos($enabled_cards) {
-  if (!isset($enabled_cards['enabled_cards'])) {
+function theme_commerce_sagepay_card_logos($variables) {
+  if (!isset($variables['enabled_cards'])) {
     return '<div />';
   }
   $output = '<div class="card_type_images">';
-  foreach ($enabled_cards['enabled_cards'] as $card => $name) {
+  foreach ($variables['enabled_cards'] as $card => $name) {
     if ($name != '0') {
-      $output .= '<img src="/' . drupal_get_path('module',
-        'commerce_sagepay') . '/img/' . $card . '.png" /> &nbsp;';
+      $output .= theme('commerce_sagepay_card_logo', array('card' => $card));
+      $output .= '&nbsp;';
     }
   }
   $output .= '</div>';
+  return $output;
+}
+
+
+/**
+ * Theme function to display a single card logo
+ *
+ * @param string $card
+ *   Name of a card as per _commerce_sagepay_all_card_names
+ *
+ * @param string $name
+ *    Optionally override the name
+ *
+ * @param string $img
+ *    Optionally override the img url
+ *
+ * @param string $href
+ *    Optional href to link the image too
+ *
+ * @return string
+ *   A themed output of card logo.
+ */
+function theme_commerce_sagepay_card_logo($variables) {
+  $output = '';
+
+  if (!empty($variables['card'])) {
+
+
+    if (!empty($variables['img'])) {
+      $src = $variables['img'];
+    }
+    else {
+      $path = '/' . drupal_get_path('module', 'commerce_sagepay');
+      $src = $path . '/img/' . $variables['card'] . '.png';
+    }
+    $img = '<img src="' . $src . '" />';
+
+    if (!empty($variables['href'])) {
+      $output .= l($img, $variables['href'], array('html' => TRUE));
+    }
+    else $output .= $img;
+
+  }
+
   return $output;
 }
