@@ -158,6 +158,47 @@ function commerce_sagepay_permission() {
       'description' => t('Configure SagePay Settings.'),
       'restrict access' => TRUE,
     ),
+    'sagepay abort payment' => array(
+      'title' => t('Abort Payment'),
+      'description' => t('Allow users to Abort a SagePay Payment'),
+      'restrict access' => TRUE,
+    ),
+    'sagepay authorise payment' => array(
+      'title' => t('Authorise Payment'),
+      'description' => t('Allow users to Authorise a SagePay Payment'),
+      'restrict access' => TRUE,
+    ),
+    'sagepay cancel payment' => array(
+      'title' => t('Cancel Payment'),
+      'description' => t('Allow users to Cancel a SagePay Payment'),
+      'restrict access' => TRUE,
+    ),
+    'sagepay refund payment' => array(
+      'title' => t('Refund Payment'),
+      'description' => t('Allow users to Refund a SagePay Payment'),
+      'restrict access' => TRUE,
+    ),
+    'sagepay release payment' => array(
+      'title' => t('Release Payment'),
+      'description' => t('Allow users to Release a SagePay Payment'),
+      'restrict access' => TRUE,
+    ),
+    'sagepay repeat payment' => array(
+      'title' => t('Repeat Payment'),
+      'description' => t('Allow users to Repeat a SagePay Payment'),
+      'restrict access' => TRUE,
+    ),
+    'sagepay repeat deferred payment' => array(
+      'title' => t('Repeat Deferred Payment'),
+      'description' => t('Allow users to Repeat a Deferred SagePay Payment'),
+      'restrict access' => TRUE,
+    ),
+    'sagepay void payment' => array(
+      'title' => t('Void Payment'),
+      'description' => t('Allow users to Void a SagePay Payment'),
+      'restrict access' => TRUE,
+    ),
+
   );
 
   return $permissions;
@@ -245,6 +286,11 @@ function commerce_sagepay_release_access($order, $transaction) {
     return FALSE;
   }
 
+  // check SagePay Payment permission
+  if (!user_access('sagepay release payment', $user)) {
+    return FALSE;
+  }
+
   // Allow access if the user can update payments on this order.
   return commerce_payment_transaction_access('update', $order, $user);
 }
@@ -287,6 +333,11 @@ function commerce_sagepay_refund_access($order, $transaction) {
     return FALSE;
   }
 
+  // check SagePay Payment permission
+  if (!user_access('sagepay refund payment', $user)) {
+    return FALSE;
+  }
+
   // Allow access if the user can update payments on this order.
   return commerce_payment_transaction_access('update', $order, $user);
 }
@@ -313,6 +364,11 @@ function commerce_sagepay_abort_access($order, $transaction) {
   }
 
   if ($transaction->remote_status != SAGEPAY_REMOTE_STATUS_DEFERRED && $transaction->remote_status != SAGEPAY_REMOTE_STATUS_REPEAT_DEFERRED) {
+    return FALSE;
+  }
+
+  // check SagePay Payment permission
+  if (!user_access('sagepay abort payment', $user)) {
     return FALSE;
   }
 
@@ -349,10 +405,14 @@ function commerce_sagepay_void_access($order, $transaction) {
     return FALSE;
   }
 
+  // check SagePay Payment permission
+  if (!user_access('sagepay void payment', $user)) {
+    return FALSE;
+  }
+
   // Allow access if the user can update payments on this order.
   return commerce_payment_transaction_access('update', $order, $user);
 }
-
 
 /**
  * Determines access to the cancel form for SagePay.
@@ -384,6 +444,11 @@ function commerce_sagepay_cancel_access($order, $transaction) {
   }
 
   if ($transaction->remote_status != 'AUTHENTICATE' && $transaction->remote_status != 'REGISTERED') {
+    return FALSE;
+  }
+
+  // check SagePay Payment permission
+  if (!user_access('sagepay cancel payment', $user)) {
     return FALSE;
   }
 
@@ -420,10 +485,14 @@ function commerce_sagepay_authorise_access($order, $transaction) {
     return FALSE;
   }
 
+  // check SagePay Payment permission
+  if (!user_access('sagepay authorise payment', $user)) {
+    return FALSE;
+  }
+
   // Allow access if the user can update payments on this order.
   return commerce_payment_transaction_access('update', $order, $user);
 }
-
 
 /**
  * Determines access to the repeat form for SagePay.
@@ -460,6 +529,11 @@ function commerce_sagepay_repeat_access($order, $transaction) {
 
   // Check if this is a successful transaction.
   if ($transaction->status != COMMERCE_PAYMENT_STATUS_SUCCESS) {
+    return FALSE;
+  }
+
+  // check SagePay Payment permission
+  if (!user_access('sagepay repeat payment', $user)) {
     return FALSE;
   }
 
@@ -502,6 +576,11 @@ function commerce_sagepay_repeat_deferred_access($order, $transaction) {
 
   // Check if this is a successful transaction.
   if ($transaction->status != COMMERCE_PAYMENT_STATUS_SUCCESS) {
+    return FALSE;
+  }
+
+  // check SagePay Payment permission
+  if (!user_access('sagepay repeat deferred payment', $user)) {
     return FALSE;
   }
 
