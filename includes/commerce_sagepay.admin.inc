@@ -264,5 +264,4 @@ function commerce_sagepay_settings_form($form, &$form_state) {
 }
 
 function commerce_sagepay_validate_prefix($element) {
-  dsm($element);
 }
