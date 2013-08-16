@@ -70,9 +70,8 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
   // Split the decrypted string into an array of tokens.
   $tokens = _commerce_sagepay_form_get_tokens($unencrypted_response);
 
-  // Split the vendor code to get rid of the random number that was added.
-  $arrtmp = explode('_', $tokens['VendorTxCode']);
-  $order_id = $arrtmp[0];
+  // Retrieve the order id from the vendor tx code
+  $order_id = _commerce_sagepay_vendor_tx_code_to_order_id($tokens['VendorTxCode']);
 
   // Validate the returned decrypted data.
   if ($order_id != $order->order_id) {

@@ -90,6 +90,13 @@ function commerce_sagepay_settings_form($form, &$form_state) {
     '#default_value' => variable_get(SAGEPAY_SETTING_ORDER_DESCRIPTION, 'Your order from sitename.com'),
   );
 
+  $form['transaction'][SAGEPAY_SETTING_TRANSACTION_PREFIX] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Transaction Code Prefix'),
+    '#description'   => t('This allows you to add an optional prefix to all transaction codes.'),
+    '#default_value' => variable_get(SAGEPAY_SETTING_TRANSACTION_PREFIX, ''),
+  );
+
   $form['transaction'][SAGEPAY_SETTING_TRANSACTION_MODE] = array(
     '#type'          => 'radios',
     '#title'         => t('Transaction mode'),
@@ -254,4 +261,8 @@ function commerce_sagepay_settings_form($form, &$form_state) {
 
   return system_settings_form($form);
 
+}
+
+function commerce_sagepay_validate_prefix($element) {
+  dsm($element);
 }

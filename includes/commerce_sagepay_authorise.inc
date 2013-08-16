@@ -119,8 +119,7 @@ function commerce_sagepay_authorise_form_submit($form, &$form_state) {
   $amount = $form_state['values']['amount'];
 
   // Create a new transaction number for the authorisation transaction.
-  $int_random_number = rand(0, 32000) * rand(0, 32000);
-  $authorise_transaction_id = $transaction->order_id . '_' . $int_random_number;
+  $authorise_transaction_id = _commerce_sagepay_vendor_tx_code($transaction);
 
   // Assemble the query array to send to SagePay.
   $query = array(

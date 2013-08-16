@@ -375,6 +375,82 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
 
 }
 
+/*
+ * Generate a unique VendorTxId
+ *
+ * @param commerce_order $order
+ *  The Commerce Order.
+ *
+ * @param string $type
+ *  Optional type
+ *
+ * @param string $prefix
+ *  Override the prefix
+ *
+ * @return string
+ *  Returns a unique string that can be used as VendorTxId
+ */
+function _commerce_sagepay_vendor_tx_code($order, $type=FALSE, $prefix=FALSE) {
+  // check prefix
+  if ($prefix === FALSE) {
+    // default to configured
+    $prefix = variable_get(SAGEPAY_SETTING_TRANSACTION_PREFIX, FALSE);
+  }
+  // check order_id
+  $order_id = isset($order->order_id) ? $order->order_id : '';
+  // Generate a random number to be appended so that the order can be
+  // resubmitted to SagePage in the event the user clicks back to modify the
+  // order before completing. (otherwise SagePay rejects this
+  // as a duplicate).
+  $random_number = rand(0, 32000) * rand(0, 32000);
+
+  $parts = array();
+  // add prefix
+  if (!empty($prefix)) $parts[] = $prefix;
+  // add type
+  if (!empty($type)) $parts[] = $type;
+  // add order id
+  if (!empty($order_id)) $parts[] = $order_id;
+  // add random number
+  $parts[] = $random_number;
+
+  // return the tx code
+  return implode('_', $parts);
+}
+
+/*
+ * Extract an order id from a VendorTxCode
+ *
+ * @param string $vendor_tx_code
+ *  a valid VendorTxCode
+ *
+ * @return boolean|string
+ *  Returns the Order Id or boolean FALSE
+ */
+function _commerce_sagepay_vendor_tx_code_to_order_id($vendor_tx_code) {
+  $order_id = FALSE;
+
+  if (!empty($vendor_tx_code)) {
+    $parts = explode('_', $vendor_tx_code);
+    // at the very least there should be 2 parts
+    if (count($parts) == 2) {
+      // {order_id}_{random number}
+      $order_id = $parts[0];
+    }
+    else if (count($parts) == 3) {
+      // {prefix}_{order_id}_{random number}
+      // or {type}_{order_id}_{random number}
+      $order_id = $parts[1];
+    }
+    else if (count($parts) == 4) {
+      // should be in the format {prefix}_{type}_{order_id}_{random number}
+      $order_id = $parts[2];
+    }
+  }
+
+  return $order_id;
+}
+
 /**
  * Encrypt the order details ready to send to SagePay Server.
  *
@@ -419,12 +495,8 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     }
   }
 
-  // Add a random number to the transaction ID so that the order can be
-  // resubmitted to SagePage in the event the user clicks back to modify the
-  // order before completing. (otherwise we SagePay rejects this
-  // as a duplicate).
-  $random_number = rand(0, 32000) * rand(0, 32000);
-  $vendor_tx_code = $order->order_number . "_" . $random_number;
+  // generate a unique VendorTxId
+  $vendor_tx_code = _commerce_sagepay_vendor_tx_code($order);
 
   // Update order number in database with the random number we just generated.
   $order->data['VendorTxId'] = $vendor_tx_code;

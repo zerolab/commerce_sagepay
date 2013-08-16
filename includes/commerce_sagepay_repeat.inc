@@ -96,8 +96,8 @@ function commerce_sagepay_repeat_form_validate($form, &$form_state) {
 function commerce_sagepay_repeat_form_submit($form, &$form_state) {
   $transaction = $form_state['transaction'];
   $amount = $form_state['values']['amount'];
-  $int_random_number = rand(0, 32000) * rand(0, 32000);
-  $repeat_transaction_id = 'REPEAT_' . $transaction->order_id . '_' . $int_random_number;
+
+  $repeat_transaction_id = 'REPEAT_' . _commerce_sagepay_vendor_tx_code($transaction);
   $query = array(
     'VPSProtocol'         => SAGEPAY_PROTOCOL,
     'TxType'              => 'REPEAT',
@@ -277,9 +277,8 @@ function commerce_sagepay_repeat_process_transaction($order, $charge) {
   $original_transaction = $original_transaction_objects[0];
 
   // Set up a new transaction ready to take the repeat payment.
-  $int_random_number = rand(0, 32000) * rand(0, 32000);
-  $repeat_transaction_id = 'REPEAT_' . $original_transaction->order_id . '_'
-    . $int_random_number;
+  $repeat_transaction_id = _commerce_sagepay_vendor_tx_code($original_transaction, 'REPEAT');
+
   $query = array(
     'VPSProtocol'         => SAGEPAY_PROTOCOL,
     'TxType'              => 'REPEAT',

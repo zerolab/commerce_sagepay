@@ -97,8 +97,7 @@ function commerce_sagepay_refund_form_submit($form, &$form_state) {
   $amount = $form_state['values']['amount'];
 
   // Create a new transaction id for the refund.
-  $int_random_number = rand(0, 32000) * rand(0, 32000);
-  $refund_transaction_id = 'REFUND_' . $transaction->order_id . '_' . $int_random_number;
+  $refund_transaction_id = _commerce_sagepay_vendor_tx_code($transaction, 'REFUND');
 
   // Set up the request to send to SagePay.
   $query = array(

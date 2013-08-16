@@ -100,8 +100,8 @@ function commerce_sagepay_repeat_deferred_form_validate($form, &$form_state) {
 function commerce_sagepay_repeat_deferred_form_submit($form, &$form_state) {
   $transaction = $form_state['transaction'];
   $amount = $form_state['values']['amount'];
-  $int_random_number = rand(0, 32000) * rand(0, 32000);
-  $repeat_transaction_id = 'REPEAT_' . $transaction->order_id . '_' . $int_random_number;
+
+  $repeat_transaction_id = _commerce_sagepay_vendor_tx_code($transaction, 'REPEAT');
   $query = array(
     'VPSProtocol'         => SAGEPAY_PROTOCOL,
     'TxType'              => 'REPEATDEFERRED',

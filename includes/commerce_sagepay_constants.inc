@@ -82,6 +82,7 @@ define('SAGEPAY_SETTING_VENDOR_NAME', 'sagepay_vendor');
 define('SAGEPAY_SETTING_VENDOR_EMAIL', 'sagepay_vendor_email');
 define('SAGEPAY_SETTING_TRANSACTION_TYPE', 'sagepay_txn_type');
 define('SAGEPAY_SETTING_TRANSACTION_MODE', 'sagepay_txn_mode');
+define('SAGEPAY_SETTING_TRANSACTION_PREFIX', 'sagepay_txn_prefix');
 define('SAGEPAY_SETTING_ENCRYPTION_KEY', 'sagepay_enc_key');
 define('SAGEPAY_SETTING_TEST_ENCRYPTION_KEY', 'sagepay_test_enc_key');
 define('SAGEPAY_SETTING_SEND_EMAIL', 'sagepay_send_email');

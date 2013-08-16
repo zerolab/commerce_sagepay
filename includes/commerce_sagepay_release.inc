@@ -110,8 +110,7 @@ function commerce_sagepay_release_form_submit($form, &$form_state) {
 function commerce_sagepay_release_transaction($transaction, $amount) {
 
   // Set up a new transaction id for the release transaction.
-  $int_random_number = rand(0, 32000) * rand(0, 32000);
-  $release_transaction_id = $transaction->order_id . '_' . $int_random_number;
+  $release_transaction_id = _commerce_sagepay_vendor_tx_code($transaction);
 
   // Create the query to send to SagePay.
   $query = array(
