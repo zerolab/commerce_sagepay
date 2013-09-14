@@ -475,7 +475,9 @@ function _commerce_sagepay_vendor_tx_code_to_order_id($vendor_tx_code) {
  */
 function _commerce_sagepay_encrypted_order($settings, $order, $total,
                                             $billing_address, $delivery_address = NULL, $integration_method = SAGEPAY_FORM, $pane_values = NULL) {
-
+  if (!empty($pane_values['credit_card']['type'])) {
+    $pane_values['credit_card']['type'] = commerce_sagepay_lookup_sagepay_card_type($pane_values['credit_card']['type']);
+  }
   // Check for Commerce Card on File value which indicates someone is trying
   // to reuse a stored payment card.
   // Redirect the request to the sagepay_token module.
@@ -877,4 +879,15 @@ function _commerce_sagepay_request_post($url, $data) {
   }
 
   return $output;
+}
+
+function commerce_sagepay_lookup_sagepay_card_type($card_type) {
+  switch ($card_type) {
+    case 'mastercard':
+      return 'MC';
+    case 'visaelectron':
+      return 'UKE';
+    default:
+    return $card_type;
+  }
 }

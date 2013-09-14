@@ -13,8 +13,8 @@ function _commerce_sagepay_all_card_names() {
 
   return array(
     'visa'    => 'Visa',
-    'uke'     => 'Visa Electron',
-    'mc'      => 'Mastercard',
+    'visaelectron'    => 'Visa Electron',
+    'mastercard'      => 'Mastercard',
     'amex'    => 'American Express',
     'delta'   => 'Delta',
     'dc'      => 'Diners Club',
