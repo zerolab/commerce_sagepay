@@ -324,7 +324,7 @@ function commerce_sagepay_server_handle_callback($order_id, $key,
       $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["FraudResponse"]) ? $_REQUEST["FraudResponse"] : '', "Text");
       $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["BankAuthCode"]) ? $_REQUEST["BankAuthCode"] : '', "Text");
 
-      $str_vpssignature = _commerce_sagepay_clean_input($_REQUEST["VPSSignature"], "Text");
+      $str_vpssignature = _commerce_sagepay_clean_input(check_plain($_REQUEST["VPSSignature"]), "Text");
       $str_message = implode('', $md5_check);
       $str_mysignature = strtoupper(md5($str_message));
       if ($str_mysignature == $str_vpssignature) {

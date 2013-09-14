@@ -237,8 +237,8 @@ function sagepay_3d_secure_callback($order_number) {
     watchdog('commerce_sagepay_direct', 'Invalid data received in 3D Secure response', array(), WATCHDOG_ERROR);
     drupal_not_found();
   }
-  $md = $_POST['MD'];
-  $pares = $_POST['PaRes'];
+  $md = check_plain($_POST['MD']);
+  $pares = check_plain($_POST['PaRes']);
 
   // Assemble post request to send to SagePay.
   $post = 'MD=' . $md;
