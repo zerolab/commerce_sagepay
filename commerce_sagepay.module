@@ -633,7 +633,8 @@ function commerce_sagepay_form_alter(&$form, &$form_state, $form_id) {
 					// if there are nio enabled cards, then get all available cards
 					if (empty($enabled_cards)) $enabled_cards = _commerce_sagepay_all_card_names();
 
-          $card_images = theme_commerce_sagepay_card_logos(array('enabled_cards' => $enabled_cards));
+          $card_images = theme('commerce_sagepay_card_logos', array
+                              ('enabled_cards' => $enabled_cards));          
           $payment_details = $form['commerce_payment']['payment_details'];
           if (array_key_exists('credit_card', $payment_details)) {
 
