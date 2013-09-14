@@ -49,7 +49,7 @@ function _commerce_sagepay_populate_card_names($cards) {
   $names = _commerce_sagepay_all_card_names();
   foreach (array_values($cards) as $c) {
     if ($c != '0') {
-      $card_array[$c] = $names[$c];
+      if (array_key_exists($c, $names)) $card_array[$c] = $names[$c];
     }
   }
 
