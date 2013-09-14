@@ -51,7 +51,7 @@ function commerce_sagepay_form_redirect_form($form, &$form_state, $order,
  */
 function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
   // SagePay sends a callback to the site as a single encrypted string.
-  // This is appened to the success or failure URL.
+  // This is appended to the success or failure URL.
   $encrypted_response = $_GET['crypt'];
 
   // Now we have the encrypted response, we need to decrypt this using the same
@@ -69,14 +69,22 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
 
   // Split the decrypted string into an array of tokens.
   $tokens = _commerce_sagepay_form_get_tokens($unencrypted_response);
-
-  // Retrieve the order id from the vendor tx code
-  $order_id = _commerce_sagepay_vendor_tx_code_to_order_id($tokens['VendorTxCode']);
-
-  // Validate the returned decrypted data.
+	if (empty($tokens)) {
+    watchdog('commerce_sagepay_form', 'Response could not be converted to tokens.', array(), WATCHDOG_ERROR);
+    return FALSE;
+  }
+	
+  // Get and check the VendorTxCode
+	$vendor_tx_code = isset($tokens['VendorTxCode']) ? $tokens['VendorTxCode'] : FALSE;
+	if (empty($vendor_tx_code)) {
+    watchdog('commerce_sagepay_form', 'No VendorTxCode returned.', array(), WATCHDOG_ERROR);
+    return FALSE;
+  }
+	
+	// Retrieve the order id from the vendor tx code
+  $order_id = _commerce_sagepay_vendor_tx_code_to_order_id($vendor_tx_code);
   if ($order_id != $order->order_id) {
     watchdog('commerce_sagepay_form', 'Returned order id does not match order for this session', array(), WATCHDOG_ERROR);
-
     return FALSE;
   }
 
