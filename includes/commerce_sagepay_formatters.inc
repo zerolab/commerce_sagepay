@@ -56,9 +56,16 @@ function _commerce_sagepay_cart_to_xml($order) {
     foreach ($line_item->commerce_unit_price['und'][0]['data']['components'] as $c) {
       if (strpos($c['name'], 'tax') === 0) {
         $item_tax += $c['price']['amount'] / 100;
+        $tax_type = $c['price']['data']['tax_rate']['type'];
+
       }
     }
-    $item_total = $line_item_wrapper->commerce_unit_price->amount->value() / 100;
+    if ($tax_type == 'vat') {
+      $item_total = $line_item_wrapper->commerce_unit_price->amount->value() / 100;
+    } else {
+      $item_total = $line_item_wrapper->commerce_unit_price->amount
+        ->value() / 100 + $item_tax;
+    }
 
     $arr_line_total = commerce_price_component_total($line_item_wrapper->commerce_total->value());
     $line_total = $arr_line_total['amount'] / 100;
@@ -163,6 +170,7 @@ function _commerce_sagepay_line_item_to_string($line_item_id) {
   foreach ($line_data['data']['components'] as $c) {
     if (strpos($c['name'], 'tax') === 0) {
       $item_tax = commerce_price_component_total($item_value, $c['name']);
+      $tax_type = $c['price']['data']['tax_rate']['type'];
     }
   }
 
@@ -170,8 +178,14 @@ function _commerce_sagepay_line_item_to_string($line_item_id) {
 
   $fl_item_total = commerce_currency_amount_to_decimal($item_value['amount'], $item_value['currency_code']);
   $fl_tax_value = commerce_currency_amount_to_decimal($item_tax['amount'], $item_tax['currency_code']);
-  $fl_item_value = $fl_item_total - $fl_tax_value;
-  $fl_total_value = $fl_item_total * $quantity;
+  if ($tax_type == 'vat') {
+    $fl_item_value = $fl_item_total - $fl_tax_value;
+    $fl_total_value = $fl_item_total * $quantity;
+  } else {
+    $fl_item_value = $fl_item_total;
+    $fl_item_total += $fl_tax_value;
+    $fl_total_value = $fl_item_total * $quantity;
+  }
 
   $line_as_text = $description . ':' . $quantity . ':' . number_format($fl_item_value, 2) . ':' . number_format($fl_tax_value, 2) . ':' . number_format($fl_item_total, 2) . ':' . number_format($fl_total_value, 2) . ':';
 
