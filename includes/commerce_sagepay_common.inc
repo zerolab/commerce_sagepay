@@ -230,7 +230,9 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
         $tokens, COMMERCE_PAYMENT_STATUS_FAILURE, SAGEPAY_REMOTE_STATUS_FAIL,
         $transaction);
       drupal_set_message(t('Your transaction was rejected. Reason: 3D-Authentication failed.'), 'warning');
-      commerce_order_status_update($order, 'checkout_review');
+      $target_step = 'checkout_review';
+      drupal_alter('commerce_sagepay_3dsecure_fail_destination', $target_step);
+      commerce_order_status_update($order, $target_step);
       return FALSE;
 
     case 'MALFORMED':
