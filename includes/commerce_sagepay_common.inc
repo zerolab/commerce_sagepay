@@ -350,7 +350,7 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
       $tds_data['PAReq'] = $tokens['PAReq'];
       $tds_data['ACSURL'] = $tokens['ACSURL'];
       $tds_data['MD'] = $tokens['MD'];
-      $tds_data['TermUrl'] = url('commerce-sagepay/3d_secure_callback/' . $order->order_number, array('absolute' => TRUE));
+      $tds_data['TermUrl'] = url('commerce-sagepay/3d_secure_callback/' . $order->order_id, array('absolute' => TRUE));
       $order->data['extra_authorisation'] = $tds_data;
       $arr_charge = array();
       $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
@@ -584,7 +584,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
       break;
 
     case SAGEPAY_SERVER:
-      $query['NotificationURL'] = url('commerce-sagepay-server/vps-callback/' . $order->order_number . '/' . $order->data['payment_redirect_key'], array('absolute' => TRUE));
+      $query['NotificationURL'] = url('commerce-sagepay-server/vps-callback/' . $order->order_id . '/' . $order->data['payment_redirect_key'], array('absolute' => TRUE));
 
       $query['TxType'] = $tx_type;
       if (variable_get(SAGEPAY_SETTING_LOW_PROFILE, 1) == 1) {

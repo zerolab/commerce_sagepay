@@ -70,7 +70,7 @@ function sagepay_3d_secure_commerce_checkout_router($order, $checkout_page) {
       $checkout_pages = commerce_checkout_pages();
       $next_step = $checkout_pages['3d_secure']['next_page'];
       commerce_order_status_update($order, 'checkout_' . $next_step);
-      drupal_goto('checkout/' . $order->order_number . '/' . $next_step);
+      drupal_goto('checkout/' . $order->order_id . '/' . $next_step);
     }
   }
 }
@@ -210,16 +210,16 @@ function sagepay_3d_secure_waiting_page() {
 /**
  * Process callback response from merchant server.
  *
- * @param int $order_number
+ * @param int $order_id
  *  The order number being processed.
  */
-function sagepay_3d_secure_callback($order_number) {
+function sagepay_3d_secure_callback($order_id) {
   // If there's no data in the POST, return a page not found.
   if (empty($_POST)) {
     drupal_not_found();
   }
   // Attempt to reload the order.
-  $order = commerce_order_load_by_number($order_number);
+  $order = commerce_order_load($order_id);
 
   // If the order doesn't exist, return a page not found.
   if (!isset($order)) {
@@ -280,10 +280,10 @@ function sagepay_3d_secure_callback($order_number) {
       commerce_checkout_complete($order);
     }
 
-    $redirect = 'checkout/' . $order->order_number . '/' . $next_step;
+    $redirect = 'checkout/' . $order->order_id . '/' . $next_step;
   }
   else {
-    $redirect = 'checkout/' . $order->order_number . '/payment';
+    $redirect = 'checkout/' . $order->order_id . '/payment';
   }
 
   sagepay_3d_secure_clear_iframe($redirect);
