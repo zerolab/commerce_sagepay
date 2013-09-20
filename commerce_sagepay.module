@@ -759,3 +759,12 @@ function theme_commerce_sagepay_card_logo($variables) {
 
   return $output;
 }
+
+/**
+ * Implements hook_enable
+ */
+function commerce_sagepay_enable() {
+  // Redirect to Sage Pay settings page immediately after enabling the module.
+  menu_rebuild();
+  drupal_goto('admin/commerce/config/sagepay');
+}
