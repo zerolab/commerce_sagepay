@@ -38,6 +38,93 @@ function commerce_sagepay_settings_form($form, &$form_state) {
     '#default_value' => variable_get(SAGEPAY_SETTING_VENDOR_NAME, ''),
   );
 
+  $form['integration_type'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Sage Pay Integration Options'),
+  );
+
+  $form['integration_type']['sagepay_server_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Server (Including InFrame)'),
+    '#default_value' => variable_get(SAGEPAY_SETTING_SERVER_ENABLED, 1),
+  );
+
+  // Items only relevant to SagePay Server integration.
+  $form['integration_type']['server_specific'] = array(
+    '#type'        => 'fieldset',
+    '#title'       => 'Sage Pay Server Integration Specific Settings',
+    '#collapsible' => TRUE,
+    '#collapsed'   => TRUE,
+  );
+
+  $form['integration_type']['server_specific'][SAGEPAY_SETTING_USE_IFRAME] = array(
+    '#type'          => 'checkbox',
+    '#title'         => t('Display payment form in an iFrame'),
+    '#description'   => t('Use an iFrame to make the payment page appear to be an integrated part of your site.'),
+    '#default_value' => variable_get(SAGEPAY_SETTING_USE_IFRAME, 1),
+  );
+
+  $form['integration_type']['server_specific'][SAGEPAY_SETTING_LOW_PROFILE] = array(
+    '#type'          => 'checkbox',
+    '#title'         => t('Use low profile payment pages'),
+    '#description'   => t('Use the less graphical, simpler set of payment pages which look better inside an iFrame.'),
+    '#default_value' => variable_get(SAGEPAY_SETTING_LOW_PROFILE, 1),
+  );
+
+  $form['integration_type']['sagepay_form_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Form (Completely outsourcing your online payments to Sage
+    Pay'),
+    '#default_value' => variable_get(SAGEPAY_SETTING_FORM_ENABLED, 1),
+
+  );
+
+  // Items only relevant to SagePay Form integration.
+  $form['integration_type']['form_fields']['form_specific'] = array(
+    '#type'        => 'fieldset',
+    '#title'       => 'Sage Pay Form Integration Specific Settings',
+    '#collapsible' => TRUE,
+    '#collapsed'   => TRUE,
+  );
+
+  $form['integration_type']['form_fields']['form_specific'][SAGEPAY_SETTING_ENCRYPTION_KEY] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Encryption Key'),
+    '#description'   => t('If you have requested form based integration, you will have received an encryption key from SagePay in a separate email.'),
+    '#weight'        => 10,
+    '#default_value' => variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY, ''),
+  );
+
+  $form['integration_type']['form_fields']['form_specific'][SAGEPAY_SETTING_TEST_ENCRYPTION_KEY] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Test Mode Encryption Key'),
+    '#description'   => t('If you have requested form based integration, you will have received an encryption key from SagePay in a separate email. The encryption key for the test server is different to the one used in your production environment.'),
+    '#weight'        => 15,
+    '#default_value' => variable_get(SAGEPAY_SETTING_TEST_ENCRYPTION_KEY, ''),
+  );
+
+  $form['integration_type']['sagepay_direct_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Direct (The full white-label payment solution)'),
+    '#default_value' => variable_get(SAGEPAY_SETTING_DIRECT_ENABLED, 1),
+  );
+
+  $form['integration_type']['direct_specific'] = array(
+    '#type'        => 'fieldset',
+    '#title'       => 'Sage Pay Direct Integration Specific Settings',
+    '#collapsible' => TRUE,
+    '#collapsed'   => TRUE,
+  );
+
+  $form['integration_type']['direct_specific']['transaction'][SAGEPAY_SETTING_ENABLED_CARDS] = array(
+    '#type'          => 'checkboxes',
+    '#title'         => t('Enabled card types'),
+    '#description'   => t('Select the card types you want to accept. If none are selected then it is assumed that all card types are accepted.'),
+    '#options'       => _commerce_sagepay_all_card_names(),
+    '#default_value' => variable_get(SAGEPAY_SETTING_ENABLED_CARDS, array()),
+  );
+
+
   // Settings related to the emails sent from SagePay during the course
   // of a transaction.
   $form['emails'] = array(
@@ -120,14 +207,6 @@ function commerce_sagepay_settings_form($form, &$form_state) {
     '#default_value' => variable_get(SAGEPAY_SETTING_TRANSACTION_TYPE, COMMERCE_CREDIT_AUTH_CAPTURE),
   );
 
-  $form['transaction'][SAGEPAY_SETTING_ENABLED_CARDS] = array(
-    '#type'          => 'checkboxes',
-    '#title'         => t('Enabled card types'),
-    '#description'   => t('Select the card types you want to accept. If none are selected then it is assumed that all card types are accepted.'),
-    '#options'       => _commerce_sagepay_all_card_names(),
-    '#default_value' => variable_get(SAGEPAY_SETTING_ENABLED_CARDS, array()),
-  );
-
   $form['transaction'][SAGEPAY_SETTING_ACCOUNT_TYPE] = array(
     '#type'          => 'radios',
     '#title'         => 'Account Type',
@@ -160,10 +239,10 @@ function commerce_sagepay_settings_form($form, &$form_state) {
     '#default_value' => variable_get(SAGEPAY_SETTING_APPLY_AVS_CV2, 0),
   );
 
-  $form['security'][SAGEPAY_SETTING_APPLY_3D_SECURE] = array(
-    '#type'          => 'item',
-    '#title'        => t('3D Secure module not enabled.'),
-  );
+    $form['security'][SAGEPAY_SETTING_APPLY_3D_SECURE] = array(
+      '#type'          => 'item',
+      '#title'        => t('3D Secure module not enabled.'),
+    );
 
   $form['order_settings'] = array(
     '#type'        => 'fieldset',
@@ -213,54 +292,36 @@ function commerce_sagepay_settings_form($form, &$form_state) {
     '#default_value' => variable_get(SAGEPAY_SETTING_DEBUG_MODE, 0),
   );
 
-  // Items only relevant to SagePay Server integration.
-  $form['server_specific'] = array(
-    '#type'        => 'fieldset',
-    '#title'       => 'SagePay Server Integration Specific Settings',
-    '#collapsible' => TRUE,
-    '#collapsed'   => TRUE,
-  );
-
-  $form['server_specific'][SAGEPAY_SETTING_USE_IFRAME] = array(
-    '#type'          => 'checkbox',
-    '#title'         => t('Display payment form in an iFrame'),
-    '#description'   => t('Use an iFrame to make the payment page appear to be an integrated part of your site.'),
-    '#default_value' => variable_get(SAGEPAY_SETTING_USE_IFRAME, 1),
-  );
-
-  $form['server_specific'][SAGEPAY_SETTING_LOW_PROFILE] = array(
-    '#type'          => 'checkbox',
-    '#title'         => t('Use low profile payment pages'),
-    '#description'   => t('Use the less graphical, simpler set of payment pages which look better inside an iFrame.'),
-    '#default_value' => variable_get(SAGEPAY_SETTING_LOW_PROFILE, 1),
-  );
-
-  // Items only relevant to SagePay Form integration.
-  $form['form_specific'] = array(
-    '#type'        => 'fieldset',
-    '#title'       => 'SagePay Form Integration Specific Settings',
-    '#collapsible' => TRUE,
-    '#collapsed'   => TRUE,
-  );
-
-  $form['form_specific'][SAGEPAY_SETTING_ENCRYPTION_KEY] = array(
-    '#type'          => 'textfield',
-    '#title'         => t('Encryption Key'),
-    '#description'   => t('If you have requested form based integration, you will have received an encryption key from SagePay in a separate email.'),
-    '#weight'        => 10,
-    '#default_value' => variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY, ''),
-  );
-
-  $form['form_specific'][SAGEPAY_SETTING_TEST_ENCRYPTION_KEY] = array(
-    '#type'          => 'textfield',
-    '#title'         => t('Test Mode Encryption Key'),
-    '#description'   => t('If you have requested form based integration, you will have received an encryption key from SagePay in a separate email. The encryption key for the test server is different to the one used in your production environment.'),
-    '#weight'        => 15,
-    '#default_value' => variable_get(SAGEPAY_SETTING_TEST_ENCRYPTION_KEY, ''),
-  );
-
   return system_settings_form($form);
 
+}
+
+function commerce_sagepay_settings_form_validate($form, &$form_state) {
+
+  // Depending on the integration modes set, enable or disable the
+  // default payment gateway rules.
+  // Only do this when the setting is changed.
+
+  if ($form_state['values']['sagepay_form_enabled'] != variable_get
+    (SAGEPAY_SETTING_FORM_ENABLED)) {
+    $rules_config = rules_config_load('commerce_payment_commerce_sagepay_form');
+    $rules_config->active = $form_state['values']['sagepay_form_enabled'];
+    $rules_config->save();
+  }
+
+  if ($form_state['values']['sagepay_server_enabled'] != variable_get
+    (SAGEPAY_SETTING_SERVER_ENABLED)) {
+    $rules_config = rules_config_load('commerce_payment_commerce_sagepay_server');
+    $rules_config->active = $form_state['values']['sagepay_server_enabled'];;
+    $rules_config->save();
+  }
+
+  if ($form_state['values']['sagepay_direct_enabled'] != variable_get
+    (SAGEPAY_SETTING_DIRECT_ENABLED)) {
+    $rules_config = rules_config_load('commerce_payment_commerce_sagepay_direct');
+    $rules_config->active = $form_state['values']['sagepay_direct_enabled'];;
+    $rules_config->save();
+  }
 }
 
 function commerce_sagepay_validate_prefix($element) {

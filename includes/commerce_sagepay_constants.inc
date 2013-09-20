@@ -16,6 +16,12 @@ define('SAGEPAY_TXN_MODE_TEST', 'test');
 define('SAGEPAY_TXN_MODE_SHOWPOST', 'showpost');
 define('SAGEPAY_TXN_MODE_SIMULATION', 'simulation');
 
+// Which methods are enabled
+define('SAGEPAY_SETTING_DIRECT_ENABLED', 'sagepay_direct_enabled');
+define('SAGEPAY_SETTING_FORM_ENABLED', 'sagepay_form_enabled');
+define('SAGEPAY_SETTING_SERVER_ENABLED', 'sagepay_server_enabled');
+
+
 // Define variable to indicate which version of the SagePay protocol.
 define('SAGEPAY_PROTOCOL', '3.0');
 
