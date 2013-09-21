@@ -53,6 +53,8 @@ function _commerce_sagepay_cart_to_xml($order) {
 
     // Step through components to look for tax item.
     $item_tax = 0;
+    $tax_type = '';
+    
     foreach ($line_item->commerce_unit_price['und'][0]['data']['components'] as $c) {
       if (strpos($c['name'], 'tax') === 0) {
         $item_tax += $c['price']['amount'] / 100;
@@ -166,7 +168,9 @@ function _commerce_sagepay_line_item_to_string($line_item_id) {
 
   // Set default value for the tax component in case the site is not using tax.
   $item_tax = array('amount' => 0, 'currency_code' => $item_value['currency_code']);
-
+  
+  $tax_type = '';
+  
   foreach ($line_data['data']['components'] as $c) {
     if (strpos($c['name'], 'tax') === 0) {
       $item_tax = commerce_price_component_total($item_value, $c['name']);
