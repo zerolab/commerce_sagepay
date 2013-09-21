@@ -75,7 +75,7 @@ function commerce_sagepay_settings_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Form (Completely outsourcing your online payments to Sage
     Pay'),
-    '#default_value' => variable_get(SAGEPAY_SETTING_FORM_ENABLED, 1),
+    '#default_value' => variable_get(SAGEPAY_SETTING_FORM_ENABLED, 0),
 
   );
 
@@ -106,7 +106,7 @@ function commerce_sagepay_settings_form($form, &$form_state) {
   $form['integration_type']['sagepay_direct_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => t('Direct (The full white-label payment solution)'),
-    '#default_value' => variable_get(SAGEPAY_SETTING_DIRECT_ENABLED, 1),
+    '#default_value' => variable_get(SAGEPAY_SETTING_DIRECT_ENABLED, 0),
   );
 
   $form['integration_type']['direct_specific'] = array(
