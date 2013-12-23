@@ -75,7 +75,7 @@ function sagepay_token_commerce_payment_method_info_alter(&$payment_methods) {
 }
 
 /**
- * Implement suport for Commerce Card on File.
+ * Implement support for Commerce Card on File.
  *
  * @param commerce_payment_transaction $transaction
  *  The transaction about to be saved.
@@ -107,17 +107,21 @@ function sagepay_token_commerce_payment_transaction_presave($transaction) {
         // card on file selector is present and selected.
         $transaction->payload['cardonfile_store'] != 0) {
         $save_cardonfile = TRUE;
-      } else if (isset($transaction->payload['cardonfile_store']) &&
+      }
+      elseif (isset($transaction->payload['cardonfile_store']) &&
         $transaction->payload['cardonfile_store'] == 0) {
         // card on file selector is present and not selected.
         $save_cardonfile = TRUE;
-      } else if (variable_get('commerce_cardonfile_storage',
+      }
+      elseif (variable_get('commerce_cardonfile_storage',
           '') == 'required') {
         // Card on file settings is set to Required.
         $save_cardonfile = TRUE;
       }
 
-      if (!$save_cardonfile) return;
+      if (!$save_cardonfile) {
+        return;
+      }
 
       // Check Card on file config settings for the a value allowing us to
       // store card on file with no user opt in.
@@ -125,7 +129,9 @@ function sagepay_token_commerce_payment_transaction_presave($transaction) {
       $order = commerce_order_load($transaction->order_id);
       $uid = $order->uid;
 
-      if ($uid == 0) return FALSE;
+      if ($uid == 0) {
+        return FALSE;
+      }
 
       $card_data = array(
         'uid' => $uid,
