@@ -1,6 +1,6 @@
 name = SagePay Token Support
 description = Add on for Commerce SagePay allow customers to use stored cards.
-package = Commerce - Payment
+package = Commerce (contrib)
 dependencies[] = commerce_sagepay
 dependencies[] = commerce_cardonfile
 core = 7.x

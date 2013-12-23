@@ -1,6 +1,6 @@
 name = SagePay Integration for Drupal Commerce
 description = Provides Integration with the SagePay Payment Gateway (http://www.sagepay.com) using Form, Server or Token method.
-package = Commerce - Payment
+package = Commerce (contrib)
 dependencies[] = commerce
 dependencies[] = commerce_payment
 core = 7.x

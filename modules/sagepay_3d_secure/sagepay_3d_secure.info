@@ -3,5 +3,5 @@ description = Adds an additional checkout step for direct payment method
 dependencies[] = commerce
 dependencies[] = commerce_order
 dependencies[] = commerce_sagepay
-package = Commerce - Payment
+package = Commerce (contrib)
 core = 7.x
