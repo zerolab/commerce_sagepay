@@ -57,7 +57,13 @@ function commerce_sagepay_form_redirect_form_validate($order, $payment_method) {
   // Now we have the encrypted response, we need to decrypt this using the same
   // secret key that we used to send the request in the first place.
   // The secret key is stored in the payment method.
-  $enc_key = variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY);
+  switch (variable_get(SAGEPAY_SETTING_TRANSACTION_MODE)) {
+    case SAGEPAY_TXN_MODE_LIVE:
+      $enc_key = variable_get(SAGEPAY_SETTING_ENCRYPTION_KEY);
+      break;
+    default:
+      $enc_key = variable_get(SAGEPAY_SETTING_TEST_ENCRYPTION_KEY);
+  }
   if (!isset($enc_key)) {
     watchdog('commerce_sagepay_form', 'Cannot load SagePay key from payment method in order to decrypt response', array(), WATCHDOG_ERROR);
 
