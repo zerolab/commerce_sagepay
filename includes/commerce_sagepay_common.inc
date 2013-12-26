@@ -577,6 +577,13 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     'Apply3DSecure'      => variable_get(SAGEPAY_SETTING_APPLY_3D_SECURE),
   );
 
+  // Add module version to transaction as referrerID to aid debugging.
+  $module_info = system_get_info('module','commerce_sagepay');
+  $version = str_replace('-', '_', $module_info['version']); // Sage Pay doesn't like - so replace.
+  $arr_version = explode('+', $version); // Split the version in case it's a dev version
+  $version = $arr_version[0];
+  $query['ReferrerID'] = 'commerce_sagepay_' . $version;
+
   switch ($integration_method) {
     case SAGEPAY_FORM:
       $query['SuccessURL'] = isset($settings['return']) ? $settings['return'] : '';
