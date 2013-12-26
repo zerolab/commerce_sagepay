@@ -103,18 +103,16 @@ function sagepay_token_commerce_payment_transaction_presave($transaction) {
       $save_cardonfile = FALSE;
 
       // As we have a token, check if the store settings permit us to save it.
-      if (isset($transaction->payload['cardonfile_store']) &&
+      $cardonfile_store = isset($transaction->payload['cardonfile_store']) ?
+        $transaction->payload['cardonfile_store'] : FALSE;
+
+      if (!empty($cardonfile_store)) {
         // card on file selector is present and selected.
-        $transaction->payload['cardonfile_store'] != 0) {
         $save_cardonfile = TRUE;
-      }
-      elseif (isset($transaction->payload['cardonfile_store']) &&
-        $transaction->payload['cardonfile_store'] == 0) {
+      } else if ($cardonfile_store === 0) {
         // card on file selector is present and not selected.
-        $save_cardonfile = TRUE;
-      }
-      elseif (variable_get('commerce_cardonfile_storage',
-          '') == 'required') {
+        $save_cardonfile = FALSE;
+      } else if (variable_get('commerce_cardonfile_storage', '') == 'required') {
         // Card on file settings is set to Required.
         $save_cardonfile = TRUE;
       }
