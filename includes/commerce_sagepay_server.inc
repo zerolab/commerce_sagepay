@@ -299,6 +299,12 @@ function commerce_sagepay_server_handle_callback($order_id, $key,
       // Get the total and currency from the original transaction.
       $charge = array('amount' => $transaction->amount,
                       'currency_code' => $transaction->currency_code);
+                      
+      // get the vendor ID
+      $vendor_name = variable_get(SAGEPAY_SETTING_VENDOR_NAME);
+      if(isset($order->data['sagepay_overrides']['Vendor'])) {
+        $vendor_name = $order->data['sagepay_overrides']['Vendor'];
+      }
 
       // Check for tampering.
       $md5_check = array();
@@ -306,7 +312,7 @@ function commerce_sagepay_server_handle_callback($order_id, $key,
       $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["VendorTxCode"]) ? $_REQUEST["VendorTxCode"] : '', "VendorTxCode");
       $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["Status"]) ? $_REQUEST["Status"] : '', "Text");
       $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["TxAuthNo"]) ? $_REQUEST["TxAuthNo"] : '', "Number");
-      $md5_check[] = variable_get(SAGEPAY_SETTING_VENDOR_NAME);
+      $md5_check[] = $vendor_name;
       $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["AVSCV2"]) ? $_REQUEST["AVSCV2"] : '', "Text");
       $md5_check[] = $transaction->payload['SecurityKey'];
       $md5_check[] = _commerce_sagepay_clean_input(isset($_REQUEST["AddressResult"]) ? $_REQUEST["AddressResult"] : '', "Text");
