@@ -310,6 +310,7 @@ function commerce_sagepay_repeat_process_transaction($order, $charge) {
   $query = _commerce_sagepay_array_to_post($query);
 
   $response = _commerce_sagepay_request_post($url, $query);
+  $response['VendorTxCode'] = $repeat_transaction_id;
 
   // Create a new transaction for the repeat order.
   $repeat_transaction = commerce_payment_transaction_new
@@ -317,7 +318,7 @@ function commerce_sagepay_repeat_process_transaction($order, $charge) {
   $repeat_transaction->instance_id = $original_transaction->instance_id;
   $repeat_transaction->amount = $charge['amount'];
   $repeat_transaction->currency_code = $original_transaction->currency_code;
-  $repeat_transaction->remote_id = $repeat_transaction_id;
+  $repeat_transaction->remote_id = $response['VPSTxId'];
   $repeat_transaction->payload = $response;
   $repeat_transaction->remote_status = SAGEPAY_REMOTE_STATUS_PAYMENT;
 
