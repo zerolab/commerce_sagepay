@@ -338,7 +338,7 @@ function commerce_sagepay_server_handle_callback($order_id, $key,
                     '%status' => $transaction->payload['Status']));
             commerce_sagepay_transaction($payment_method, $order, $charge,
               $vps_data,
-              COMMERCE_PAYMENT_STATUS_SUCCESS, SAGEPAY_REMOTE_STATUS_PAYMENT,
+              COMMERCE_PAYMENT_STATUS_SUCCESS, $vps_data['TxType'],
            $transaction);
 
             $notification['status'] = 'OK';
