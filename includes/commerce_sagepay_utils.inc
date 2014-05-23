@@ -85,12 +85,16 @@ function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_n
     $split_name = explode(' ', trim($name_line));
 
     $last_name = array_pop($split_name);
-    foreach ($split_name as $n) {
-      $first_name .= $n;
-      $first_name .= ' ';
+    if (count($split_name) > 1) {
+      foreach ($split_name as $n) {
+        $first_name .= $n;
+        $first_name .= ' ';
+      }
+    } else {
+      $first_name = array_pop($split_name);
     }
 
-    // Allow for a situation where only one name was entered on the name line.
+    // Allow for a situation where only last name was entered on the name line.
     if ($first_name == '') {
       $first_name = 'not set';
     }
