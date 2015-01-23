@@ -521,12 +521,6 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     $encoded_cart = _commerce_sagepay_cart_to_xml($order)->saveXML();
   }
 
-  $billing_name = _commerce_sagepay_format_customer_name(
-    $billing_address['name_line'],
-    $billing_address['first_name'],
-    $billing_address['last_name']
-  );
-
   // Add a default postcode if the address supplied didn't have one.
   // SagePay requires a postcode even if some countries do not have them.
   $billing_address['postal_code'] = _commerce_sagepay_ensure_postal_code($billing_address);
@@ -554,20 +548,20 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
     'Amount'             => $order_amount,
     'Currency'           => $total['currency_code'],
     'Description'        => variable_get(SAGEPAY_SETTING_ORDER_DESCRIPTION),
-    'CustomerName'       => $billing_name['first_name'] . ' ' . $billing_name['last_name'],
+    'CustomerName'       => $billing_address['first_name'] . ' ' . $billing_address['last_name'],
     'CustomerEmail'      => $order->mail,
     'VendorEmail'        => variable_get(SAGEPAY_SETTING_VENDOR_EMAIL),
     'SendEmail'          => variable_get(SAGEPAY_SETTING_SEND_EMAIL),
     'eMailMessage'       => variable_get(SAGEPAY_SETTING_EMAIL_MESSAGE),
-    'BillingSurname'     => $billing_name['last_name'],
-    'BillingFirstnames'  => $billing_name['first_name'],
+    'BillingSurname'     => substr($billing_address['last_name'],0,20),
+    'BillingFirstnames'  => substr($billing_address['first_name'],0,20),
     'BillingAddress1'    => $billing_address['thoroughfare'],
     'BillingAddress2'    => $billing_address['premise'],
     'BillingCity'        => $billing_address['locality'],
     'BillingPostcode'    => $billing_address['postal_code'],
     'BillingCountry'     => $billing_address['country'],
-    'DeliverySurname'    => $billing_name['last_name'],
-    'DeliveryFirstnames' => $billing_name['first_name'],
+    'DeliverySurname'    => substr($billing_address['last_name'],0,20),
+    'DeliveryFirstnames' => substr($billing_address['first_name'],0,20),
     'DeliveryAddress1'   => $billing_address['thoroughfare'],
     'DeliveryAddress2'   => $billing_address['premise'],
     'DeliveryCity'       => $billing_address['locality'],
@@ -609,7 +603,7 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
 
     case SAGEPAY_DIRECT:
       $query['TxType'] = $tx_type;
-      $query['CardHolder'] = $billing_name['first_name'] . ' ' . $billing_name['last_name'];
+      $query['CardHolder'] = $billing_address['first_name'] . ' ' . $billing_address['last_name'];
       $query['CardNumber'] = $pane_values['credit_card']['number'];
       $query['ExpiryDate'] = $pane_values['credit_card']['exp_month'] . substr($pane_values['credit_card']['exp_year'], 2, 2);
 
@@ -675,14 +669,8 @@ function _commerce_sagepay_encrypted_order($settings, $order, $total,
   // Override with supplied delivery address if we have one.
   if (isset($delivery_address)) {
 
-    $delivery_name = _commerce_sagepay_format_customer_name(
-      isset($delivery_address['name_line']) ? $delivery_address['name_line'] : NULL,
-      isset($delivery_address['first_name']) ? $delivery_address['first_name'] : NULL,
-      isset($delivery_address['last_name']) ? $delivery_address['last_name'] : NULL
-    );
-
-    $query['DeliverySurname'] = $delivery_name['last_name'];
-    $query['DeliveryFirstnames'] = $delivery_name['first_name'];
+    $query['DeliverySurname'] = substr($delivery_address['last_name'], 0, 20);
+    $query['DeliveryFirstnames'] = substr($delivery_address['first_name'], 0, 20);
     $query['DeliveryAddress1'] = $delivery_address['thoroughfare'];
     $query['DeliveryAddress2'] = $delivery_address['premise'];
     $query['DeliveryCity'] = $delivery_address['locality'];
