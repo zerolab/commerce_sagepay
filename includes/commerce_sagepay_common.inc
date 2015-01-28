@@ -280,7 +280,10 @@ function commerce_sagepay_process_response($payment_method, $order, $tokens,
 
       // If 3D secure is in use, we may have to load a partial transaction.
       if (module_exists('sagepay_3d_secure')) {
-        $transaction = sagepay_3d_secure_load_transaction($tokens, $order);
+        $transaction_3d = sagepay_3d_secure_load_transaction($tokens, $order);
+        if ($transaction_3d) {
+          $transaction = $transaction_3d;
+        }
       }
 
       $remote_status = SAGEPAY_REMOTE_STATUS_PAYMENT;
