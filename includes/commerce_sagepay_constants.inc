@@ -101,7 +101,6 @@ define('SAGEPAY_SETTING_GIFT_AID', 'sagepay_gift_aid');
 define('SAGEPAY_SETTING_ACCOUNT_TYPE', 'sagepay_account_type');
 define('SAGEPAY_SETTING_USE_TEST_DATA', 'sagepay_use_test_data');
 define('SAGEPAY_SETTING_BYPASS_COMMERCE_CARD_VALIDATION', 'sagepay_bypass_commerce_card_validation');
-define('SAGEPAY_SETTING_DEBUG_MODE', 'sagepay_debug_mode');
 define('SAGEPAY_SETTING_ENABLED_CARDS', 'sagepay_enabled_cards');
 define('SAGEPAY_SETTING_USE_IFRAME', 'sagepay_use_iframe');
 define('SAGEPAY_SETTING_LOW_PROFILE', 'sagepay_use_low_profile_pages');

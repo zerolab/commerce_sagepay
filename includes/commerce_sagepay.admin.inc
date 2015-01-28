@@ -285,13 +285,6 @@ function commerce_sagepay_settings_form($form, &$form_state) {
     '#default_value' => variable_get(SAGEPAY_SETTING_BYPASS_COMMERCE_CARD_VALIDATION, 0),
   );
 
-  $form['testing'][SAGEPAY_SETTING_DEBUG_MODE] = array(
-    '#type'          => 'checkbox',
-    '#title'         => t('Enable Debug mode.'),
-    '#description'   => t('Debug mode will present certain information as debug messages during the checkout.'),
-    '#default_value' => variable_get(SAGEPAY_SETTING_DEBUG_MODE, 0),
-  );
-
   return system_settings_form($form);
 
 }
