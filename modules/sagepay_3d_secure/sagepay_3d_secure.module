@@ -159,7 +159,7 @@ function sagepay_3d_secure_pane_checkout_form($form, &$form_state, $checkout_pan
   $form['iframe_3d_secure'] = array(
     '#markup' => '<iframe width="550" height="440" scrolling="auto" frameborder="0" name ="iframe_3d_secure" id ="iframe_3d_secure" src="' .
     url('sagepay_3d_secure/3d_secure_waiting_page')
-    . '" />',
+    . '" ></iframe>',
   );
   return $form;
 }

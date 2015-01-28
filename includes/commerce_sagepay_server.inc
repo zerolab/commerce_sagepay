@@ -118,7 +118,7 @@ function commerce_sagepay_server_redirect_form($form, &$form_state, $order, $pay
           '#value' => t('Proceed to SagePay'),
         );
         $form['iframe_sagepay'] = array(
-          '#markup' => '<iframe style="width: 600px; height:500px" scrolling="no" frameborder="0" name="iframe_sagepay" id="iframe_sagepay" src="' . url('commerce_sagepay/sagepay_waiting_page') . '" />',
+          '#markup' => '<iframe style="width: 600px; height:500px" scrolling="no" frameborder="0" name="iframe_sagepay" id="iframe_sagepay" src="' . url('commerce_sagepay/sagepay_waiting_page') . '"></iframe>',
         );
 
         return $form;
