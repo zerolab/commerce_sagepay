@@ -56,56 +56,6 @@ function _commerce_sagepay_populate_card_names($cards) {
   return $card_array;
 }
 
-
-/**
- * Correctly format the customer name.
- *
- * Some configurations have a name line where others have a
- * first name and last name.
- * This function checks both scenarios and returns a consistent name array.
- *
- * @param string $name_line
- *    The name as a single line (eg Richard Jones).
- * @param string $first_name
- *    The first name only (eg Richard).
- * @param string $last_name
- *    The last name only (eg Jones).
- *
- * @return array
- *   An array of the name compoent parts.
- */
-function _commerce_sagepay_format_customer_name($name_line, $first_name, $last_name) {
-
-  // If we have been supplied with a $name_line variable, split it by space
-  // and make the assumption that the last word is the last name and all other
-  // are the first name.
-  $name = array();
-
-  if (isset($name_line)) {
-    $split_name = explode(' ', trim($name_line));
-
-    $last_name = array_pop($split_name);
-    if (count($split_name) > 1) {
-      foreach ($split_name as $n) {
-        $first_name .= $n;
-        $first_name .= ' ';
-      }
-    } else {
-      $first_name = array_pop($split_name);
-    }
-
-    // Allow for a situation where only last name was entered on the name line.
-    if ($first_name == '') {
-      $first_name = 'not set';
-    }
-  }
-
-  $name['first_name'] = trim($first_name);
-  $name['last_name'] = trim($last_name);
-
-  return $name;
-}
-
 /**
  * Encrypt a string ready to send to SagePay using encryption key.
  *
