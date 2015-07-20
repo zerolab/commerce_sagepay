@@ -4,3 +4,9 @@ package = Commerce (contrib)
 dependencies[] = commerce
 dependencies[] = commerce_payment
 core = 7.x
+
+
+; Information added by drush on 2015-07-20
+version = "7.x-1.0+16-dev"
+project = "commerce_sagepay"
+datestamp = "1437403076"
